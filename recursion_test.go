@@ -12,7 +12,29 @@ import (
 
 var errFileNotFound = errors.New("File not found")
 
-func lookingForFile(pattern string, start_path string) ([]string, error) {
+// Using WalkDir
+func lookingForFileStepByStep(name string, start_path string) ([] string, error) {
+	var paths []string
+	err := fs.WalkDir(os.DirFS(start_path), ".", func(path string, d fs.DirEntry, err error) error {
+		if (err != nil) {
+			return err
+		}
+		if (d.Name() == name && d.Type().IsRegular()) {
+			paths = append(paths, path)
+		}
+		return nil
+	})
+	if (err != nil) {
+		return nil, err
+	}
+	if (len(paths) == 0) {
+		return nil, errFileNotFound
+	}
+	return paths, nil
+}
+
+// Using Glob
+func lookingForFileByPattern(pattern string, start_path string) ([]string, error) {
 	// Better creating well the path before calling this function
 	start := os.DirFS(start_path);
 
@@ -34,7 +56,7 @@ func lookingForFile(pattern string, start_path string) ([]string, error) {
 
 
 func TestSearchFile(t *testing.T) {
-	t.Run("file found", func(t *testing.T) {
+	t.Run("file found by pattern", func(t *testing.T) {
 		name := "file.txt"
 		path := "./"
 		_, err := os.Create(path + name)
@@ -44,7 +66,29 @@ func TestSearchFile(t *testing.T) {
 		}
 		// Kind of regex, will search only at the root of the path
 		pattern := "file.txt"
-		_, err = lookingForFile(pattern, path)
+		_, err = lookingForFileByPattern(pattern, path)
+		assertNoError(t, err)
+	})
+	t.Run("file not found by pattern", func(t *testing.T) {
+		name := "file.txt"
+		path := "./"
+		_, err := lookingForFileByPattern(name, path)
+		assertError(t, err, errFileNotFound)
+	})
+
+	t.Run("file found into sub dir by pattern", func(t *testing.T) {
+		dir := "test"
+		os.MkdirAll(dir, 0755)
+		defer os.RemoveAll(dir)
+		name := "file.txt"
+		path := "./"
+		_, err := os.Create(path + dir + "/" + name)
+		if (err != nil) {
+			t.Errorf("Erreur creating file for the test : %q", err.Error())
+		}
+		// will look only into sub directory
+		pattern := "**/file.txt"
+		_, err = lookingForFileByPattern(pattern, path)
 		assertNoError(t, err)
 	})
 	t.Run("file found", func(t *testing.T) {
@@ -56,14 +100,14 @@ func TestSearchFile(t *testing.T) {
 			t.Errorf("Erreur creating file for the test : %q", err.Error())
 		}
 		// Kind of regex, will search only at the root of the path
-		pattern := "file.txt"
-		_, err = lookingForFile(pattern, path)
+		_, err = lookingForFileStepByStep(name, path)
 		assertNoError(t, err)
 	})
+
 	t.Run("file not found", func(t *testing.T) {
 		name := "file.txt"
 		path := "./"
-		_, err := lookingForFile(name, path)
+		_, err := lookingForFileStepByStep(name, path)
 		assertError(t, err, errFileNotFound)
 	})
 
@@ -78,8 +122,7 @@ func TestSearchFile(t *testing.T) {
 			t.Errorf("Erreur creating file for the test : %q", err.Error())
 		}
 		// will look only into sub directory
-		pattern := "**/file.txt"
-		_, err = lookingForFile(pattern, path)
+		_, err = lookingForFileStepByStep(name, path)
 		assertNoError(t, err)
 	})
 }
