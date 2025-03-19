@@ -17,11 +17,11 @@ func assertError(t *testing.T, got error, want error) {
 	}
 }
 
-func assertNoError(t *testing.T, got error, want error) {
+func assertNoError(t *testing.T, got error) {
 	t.Helper()
 
-	if (got != want) {
-		t.Errorf("got %q, want %q", got.Error(), want.Error())
+	if (got != nil) {
+		t.Errorf("got %q, want %q", got.Error(), "nil")
 	}
 }
 
@@ -34,7 +34,7 @@ func TestArgument(t *testing.T) {
 			assertError(t, err, errMissingArgs);
 		}
 		t.Logf("Name: %s, Path: %s", name, path)
-		assertNoError(t, err, nil)
+		assertNoError(t, err)
 	})
 	t.Run("One argument no error", func(t *testing.T) {
 		var args = []string{*name}
@@ -43,7 +43,7 @@ func TestArgument(t *testing.T) {
 			assertError(t, err, errMissingArgs);
 		}
 		t.Logf("Name: %s", name)
-		assertNoError(t, err, nil);
+		assertNoError(t, err);
 	})
 	t.Run("No arguments", func(t *testing.T) {
 		var args = []string{}
