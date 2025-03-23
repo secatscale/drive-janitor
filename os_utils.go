@@ -8,11 +8,10 @@ import (
 )
 
 // WhichOs returns the OS type
+// overkill function
 func WhichOs() string {
 	return runtime.GOOS
 }
-
-// overkill function, but it's here for testing purposes
 
 func WhereTrash(osName string) (string, error) {
 	home, err := os.UserHomeDir()

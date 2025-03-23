@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -12,7 +14,6 @@ func TestWhereTrash(t *testing.T) {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			t.Fatalf("os.UserHomeDir() returned an error: %v", err)
-
 		}
 		if home == "" {
 			t.Fatalf("os.UserHomeDir() returned null")
@@ -55,4 +56,175 @@ func TestWhereTrash(t *testing.T) {
 			t.Errorf("WhereTrash() returned a path for unsupported OS")
 		}
 	})
+	t.Run("Is this actually where a trashed file go ?", func(t *testing.T) {
+		trashPath, err := WhereTrash(WhichOs())
+		if err != nil {
+			t.Fatalf("WhereTrash() returned an error: %v", err)
+		}
+		isDeleteMeHere, err := isDeleteMeHere()
+		if err != nil {
+			t.Fatalf("isDeleteMeHere returned an error: %v", err)
+		}
+		if !isDeleteMeHere {
+			err = respawnSample()
+			if err != nil {
+				t.Fatalf("respawnSample() returned an error: %v", err)
+			}
+		}
+		isDeleteMeInTrash, err := isTrashedSampleInTrash(trashPath)
+		if err != nil {
+			t.Fatalf("isTrashedSampleInTrash() returned an error: %v", err)
+		}
+		if isDeleteMeInTrash {
+			err = cleanTrashedSample()
+			if err != nil {
+				t.Fatalf("cleanTrashedSample() returned an error: %v", err)
+			}
+		}
+		err = trashSample()
+		if err != nil {
+			t.Fatalf("trashSample() returned an error: %v", err)
+		}
+
+		isTrashedSampleInTrash, err := isTrashedSampleInTrash(trashPath)
+		if err != nil {
+			t.Fatalf("isTrashedSampleInTrash() returned an error: %v", err)
+		}
+		if !isTrashedSampleInTrash {
+			t.Fatalf("Trashed sample file not found in trash folder")
+		}
+		t.Cleanup(func() {
+			err = cleanTrashedSample()
+			if err != nil {
+				t.Fatalf("cleanTrashedSample() returned an error: %v", err)
+			}
+			err = respawnSample()
+			if err != nil {
+				t.Fatalf("respawnSample() returned an error: %v", err)
+			}
+		})
+	})
+}
+
+// isDeleteMeHere checks if the sample file is in the current directory
+func isDeleteMeHere() (bool, error) {
+	_, err := os.Stat("delete_me.txt")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("os.Stat() returned an error: %v", err)
+	}
+	return true, nil
+}
+
+// trashSample moves a sample file to the trash folder
+func trashSample() error {
+	absPath, err := filepath.Abs("delete_me.txt")
+	if err != nil {
+		return fmt.Errorf("filepath.Abs() returned an error: %v", err)
+	}
+	var cmd *exec.Cmd
+	switch WhichOs() {
+	case "windows":
+		psScript := fmt.Sprintf(`[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("%s", 'OnlyErrorDialogs', 'SendToRecycleBin')`, absPath)
+		cmd = exec.Command("powershell", "-Command", psScript)
+	case "linux":
+		//verify gio is installed
+		_, err := exec.LookPath("gio")
+		if err != nil {
+			return fmt.Errorf("gio not found in PATH")
+		}
+		cmd = exec.Command("gio", "trash", absPath)
+	case "darwin":
+		//verify osascript is installed
+		_, err := exec.LookPath("osascript")
+		if err != nil {
+			return fmt.Errorf("osascript not found in PATH")
+		}
+		cmd = exec.Command("osascript", "-e", fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, absPath))
+	default:
+		return fmt.Errorf("Unsupported OS %s", WhichOs())
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("cmd.CombinedOutput() returned an error: %v, output: %s", err, string(out))
+	}
+	return nil
+}
+
+// isTrashedSampleInTrash checks if the sample file is in the trash folder
+func isTrashedSampleInTrash(trashPath string) (bool, error) {
+	var err error
+	switch WhichOs() {
+	case "windows":
+		_, err = os.Stat(filepath.Join(trashPath, "delete_me.txt"))
+	case "linux":
+		_, err = os.Stat(filepath.Join(trashPath, "files", "delete_me.txt"))
+	case "darwin":
+		_, err = os.Stat(filepath.Join(trashPath, "delete_me.txt"))
+	default:
+		return false, fmt.Errorf("Unsupported OS %s", WhichOs())
+	}
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("os.Stat() returned an error: %v", err)
+	}
+	return true, nil
+}
+
+func getTrashedSamplePaths() (filePath, metaPath string, err error) {
+	trashPath, err := WhereTrash(WhichOs())
+	if err != nil {
+		return "", "", fmt.Errorf("WhereTrash() returned an error: %v", err)
+	}
+	switch WhichOs() {
+	case "windows", "darwin":
+		filePath = filepath.Join(trashPath, "delete_me.txt")
+		return filePath, "", nil
+	case "linux":
+		filePath = filepath.Join(trashPath, "files", "delete_me.txt")
+		metaPath = filepath.Join(trashPath, "info", "delete_me.txt.trashinfo")
+		return filePath, metaPath, nil
+	default:
+		return "", "", fmt.Errorf("Unsupported OS %s", WhichOs())
+	}
+}
+
+// cleanTrashedSample removes the sample file from the trash folder
+func cleanTrashedSample() error {
+	filePath, metaPath, err := getTrashedSamplePaths()
+	if err != nil {
+		return fmt.Errorf("getTrashedSamplePaths() returned an error: %v", err)
+	}
+	err = os.Remove(filePath)
+	if err != nil {
+		return fmt.Errorf("os.Remove() returned an error: %v", err)
+	}
+	if metaPath != "" {
+		err = os.Remove(metaPath)
+		if err != nil {
+			return fmt.Errorf("os.Remove() returned an error: %v", err)
+		}
+	}
+	return nil
+}
+
+// respawnSample creates the sample file in the current directory
+func respawnSample() error {
+	file, err := os.Create("delete_me.txt")
+	if err != nil {
+		return fmt.Errorf("os.Create() returned an error: %v", err)
+	}
+	_, err = file.WriteString("This file is meant to be deleted during testing of the WhereTrash function\n")
+	if err != nil {
+		return fmt.Errorf("file.WriteString() returned an error: %v", err)
+	}
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("file.Close() returned an error: %v", err)
+	}
+	return nil
 }
