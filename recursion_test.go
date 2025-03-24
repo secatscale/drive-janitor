@@ -1,128 +1,118 @@
+/*
+	config recursion:
+		* max depth
+		* skip directories (regex)
+		* priority directories (regex)
+*/
+
+/*
+	// struct recursion with info path depth etc
+	// struct de detection
+	// struct d'action
+	recursion(struct recursion, )
+
+	on a la recursion qui loop, et en fonction de la config, on aura la detection, donc idealement la recursion prend une structure avec la config de detection
+*/
+
 package main
 
 import (
-	"errors"
 	"io/fs"
 	"os"
+	"strings"
 	"testing"
 )
 
-//		var args = []string{*name, *path}
-// Next step is to step with relative path i think from arguments
+type RecursionConfig struct {
+	InitialPath string
+	MaxDepth int
+	SkipDirectories []string
+	PriorityDirectories []string
+	BrowseFiles int
+}
 
-var errFileNotFound = errors.New("File not found")
+// Test 1 -> checker la max depth
+// Test 2 -> checker qu'on parcours bien tous les fichiers
 
-// Using WalkDir
-func lookingForFileStepByStep(name string, start_path string) ([] string, error) {
-	var paths []string
-	err := fs.WalkDir(os.DirFS(start_path), ".", func(path string, d fs.DirEntry, err error) error {
+
+// cette function parcours toues les fichiers et dossiers
+
+func countSeparator(path string) int {
+	count := strings.Split(path, string(os.PathSeparator))
+	return len(count)
+}
+
+func getDepth(originalPath string, path string) int {
+	return countSeparator(path) - countSeparator(originalPath) + 1
+}
+
+func isAboveMaxDepth(initialPath string, path string, maxDepth int) bool {
+	return getDepth(initialPath, path) > maxDepth
+}
+
+func (config *RecursionConfig) recurse(/* May take dectection and action struct*/) error {
+	initialPathFs := os.DirFS(config.InitialPath);
+	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
+//		fmt.Println(getDepth(config.InitialPath, path), config.InitialPath, path, entry.Type().IsDir())
+		if (isAboveMaxDepth(config.InitialPath, path, config.MaxDepth)) {
+			return fs.SkipDir;
+		}
+		if (!entry.Type().IsDir()) {
+			config.BrowseFiles += 1;
+		}
 		if (err != nil) {
 			return err
-		}
-		if (d.Name() == name && d.Type().IsRegular()) {
-			paths = append(paths, path)
 		}
 		return nil
 	})
 	if (err != nil) {
-		return nil, err
+		return err
 	}
-	if (len(paths) == 0) {
-		return nil, errFileNotFound
-	}
-	return paths, nil
+	return nil
 }
 
-// Using Glob
-func lookingForFileByPattern(pattern string, start_path string) ([]string, error) {
-	// Better creating well the path before calling this function
-	start := os.DirFS(start_path);
-
-	// To match in sub directory
-	matches, err := fs.Glob(start, pattern)
-	if (err != nil) {
-		// Case fs.Glob crashed
-		return nil, err
-	}
-	if (len(matches) == 0) {
-		return nil, errFileNotFound
-	}
-	var paths []string
-    for _, v := range matches {
-       paths = append(paths, start_path + v)
-    }
-	return paths, nil
-}
-
-
-func TestSearchFile(t *testing.T) {
-	t.Run("file found by pattern", func(t *testing.T) {
-		name := "file.txt"
-		path := "./"
-		_, err := os.Create(path + name)
-		defer os.Remove(path + name)
-		if (err != nil) {
-			t.Errorf("Erreur creating file for the test : %q", err.Error())
-		}
-		// Kind of regex, will search only at the root of the path
-		pattern := "file.txt"
-		_, err = lookingForFileByPattern(pattern, path)
-		assertNoError(t, err)
-	})
-	t.Run("file not found by pattern", func(t *testing.T) {
-		name := "file.txt"
-		path := "./"
-		_, err := lookingForFileByPattern(name, path)
-		assertError(t, err, errFileNotFound)
-	})
-
-	t.Run("file found into sub dir by pattern", func(t *testing.T) {
+func TestRecursion(t *testing.T) {
 		dir := "test"
 		os.MkdirAll(dir, 0755)
+		os.MkdirAll("test/1", 0755)
 		defer os.RemoveAll(dir)
 		name := "file.txt"
 		path := "./"
 		_, err := os.Create(path + dir + "/" + name)
-		if (err != nil) {
-			t.Errorf("Erreur creating file for the test : %q", err.Error())
+		_, err = os.Create(path + dir + "/1/" + "file2.txt")
+	t.Run("Test browsering", func(t *testing.T) {
+		config := RecursionConfig{
+			InitialPath: "./test",
+			MaxDepth: 1,
+			SkipDirectories: []string{},
+			PriorityDirectories: []string{},
+			BrowseFiles: 0,
 		}
-		// will look only into sub directory
-		pattern := "**/file.txt"
-		_, err = lookingForFileByPattern(pattern, path)
-		assertNoError(t, err)
-	})
-	t.Run("file found", func(t *testing.T) {
-		name := "file.txt"
-		path := "./"
-		_, err := os.Create(path + name)
-		defer os.Remove(path + name)
+		err = config.recurse()
 		if (err != nil) {
-			t.Errorf("Erreur creating file for the test : %q", err.Error())
+			t.Errorf("Error while browsing files: %v", err)
 		}
-		// Kind of regex, will search only at the root of the path
-		_, err = lookingForFileStepByStep(name, path)
-		assertNoError(t, err)
+		if (config.BrowseFiles != 2) {
+			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+		}
 	})
-
-	t.Run("file not found", func(t *testing.T) {
-		name := "file.txt"
-		path := "./"
-		_, err := lookingForFileStepByStep(name, path)
-		assertError(t, err, errFileNotFound)
-	})
-
-	t.Run("file found into sub dir", func(t *testing.T) {
-		dir := "test"
-		os.MkdirAll(dir, 0755)
-		defer os.RemoveAll(dir)
-		name := "file.txt"
-		path := "./"
-		_, err := os.Create(path + dir + "/" + name)
+	t.Run("Test max depth", func(t *testing.T) {
+		os.MkdirAll("test/1/2", 0755)
+		_, err = os.Create(path + dir + "/1/2/" + "file3.txt")
+		defer os.RemoveAll(path + dir + "/1/2")
+		config := RecursionConfig{
+			InitialPath: "./test",
+			MaxDepth: 1,
+			SkipDirectories: []string{},
+			PriorityDirectories: []string{},
+			BrowseFiles: 0,
+		}
+		err = config.recurse()
 		if (err != nil) {
-			t.Errorf("Erreur creating file for the test : %q", err.Error())
+			t.Errorf("Error while browsing files: %v", err)
 		}
-		// will look only into sub directory
-		_, err = lookingForFileStepByStep(name, path)
-		assertNoError(t, err)
+		if (config.BrowseFiles != 2) {
+			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+		}
 	})
 }
