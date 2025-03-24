@@ -199,15 +199,35 @@ func cleanTrashedSample() error {
 	if err != nil {
 		return fmt.Errorf("getTrashedSamplePaths() returned an error: %v", err)
 	}
-	err = os.Remove(filePath)
-	if err != nil {
-		return fmt.Errorf("os.Remove() returned an error: %v", err)
-	}
-	if metaPath != "" {
+	switch WhichOs() {
+	case "windows":
+		err = os.Remove(filePath)
+		if err != nil {
+			return fmt.Errorf("os.Remove() returned an error: %v", err)
+		}
+		if metaPath != "" {
+			err = os.Remove(metaPath)
+			if err != nil {
+				return fmt.Errorf("os.Remove() returned an error: %v", err)
+			}
+		}
+	case "linux":
+		err = os.Remove(filePath)
+		if err != nil {
+			return fmt.Errorf("os.Remove() returned an error: %v", err)
+		}
 		err = os.Remove(metaPath)
 		if err != nil {
 			return fmt.Errorf("os.Remove() returned an error: %v", err)
 		}
+	case "darwin":
+		cmd := exec.Command("osascript", "-e", fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, filePath))
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("cmd.CombinedOutput() returned an error: %v, output: %s", err, string(out))
+		}
+	default:
+		return fmt.Errorf("Unsupported OS %s", WhichOs())
 	}
 	return nil
 }
