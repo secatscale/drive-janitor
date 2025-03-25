@@ -17,6 +17,7 @@
 package main
 
 import (
+	"drive-janitor/testhelper"
 	"io/fs"
 	"os"
 	"strings"
@@ -71,16 +72,23 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 	return nil
 }
 
+
+// find a way to generate test files easily
 func TestRecursion(t *testing.T) {
-		dir := "test"
-		os.MkdirAll(dir, 0755)
-		os.MkdirAll("test/1", 0755)
-		defer os.RemoveAll(dir)
-		name := "file.txt"
-		path := "./"
-		_, err := os.Create(path + dir + "/" + name)
-		_, err = os.Create(path + dir + "/1/" + "file2.txt")
-	t.Run("Test browsering", func(t *testing.T) {
+	dir := "test"
+	os.MkdirAll(dir, 0755)
+	os.MkdirAll("test/1", 0755)
+	name := "file.txt"
+	path := "./"
+	_, err := os.Create(path + dir + "/" + name)
+	if (err != nil) {
+		t.Errorf("Error while creating file: %v", err)
+	}
+	_, err = os.Create(path + dir + "/1/" + "file2.txt")
+	if (err != nil) {
+		t.Errorf("Error while creating file: %v", err)
+	}
+	testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
 		config := RecursionConfig{
 			InitialPath: "./test",
 			MaxDepth: 1,
@@ -95,11 +103,11 @@ func TestRecursion(t *testing.T) {
 		if (config.BrowseFiles != 2) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
-	})
-	t.Run("Test max depth", func(t *testing.T) {
+	}, map[string]bool{"linux": true, "darwin": true});
+
+	testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
 		os.MkdirAll("test/1/2", 0755)
 		_, err = os.Create(path + dir + "/1/2/" + "file3.txt")
-		defer os.RemoveAll(path + dir + "/1/2")
 		config := RecursionConfig{
 			InitialPath: "./test",
 			MaxDepth: 1,
@@ -114,5 +122,10 @@ func TestRecursion(t *testing.T) {
 		if (config.BrowseFiles != 2) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
+	}, map[string]bool{"linux": true, "darwin": true});
+
+	t.Cleanup(func() {
+		defer os.RemoveAll(path + dir + "/1/2")
+		defer os.RemoveAll(dir)
 	})
 }
