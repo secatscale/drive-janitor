@@ -18,6 +18,7 @@ package main
 
 import (
 	"drive-janitor/testhelper"
+	"fmt"
 	"io/fs"
 	"os"
 	"strings"
@@ -123,6 +124,52 @@ func TestRecursion(t *testing.T) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
 	}, map[string]bool{"linux": true, "darwin": true});
+
+	testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
+		path, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+		config := RecursionConfig{
+			InitialPath: path,
+			MaxDepth: 1,
+			SkipDirectories: []string{},
+			PriorityDirectories: []string{},
+			BrowseFiles: 0,
+		}
+		err = config.recurse()
+		if (err != nil) {
+			t.Errorf("Error while browsing files: %v", err)
+		}
+		if (config.BrowseFiles != 2) {
+			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+		}
+	}, map[string]bool{"windows": true});
+
+	testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
+		path, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		os.MkdirAll(path + "\\1\\2", 0755)
+		_, err = os.Create(path + "\\1\\2\\" + "file3.txt")
+		config := RecursionConfig{
+			InitialPath: "path",
+			MaxDepth: 1,
+			SkipDirectories: []string{},
+			PriorityDirectories: []string{},
+			BrowseFiles: 0,
+		}
+		err = config.recurse()
+		if (err != nil) {
+			t.Errorf("Error while browsing files: %v", err)
+		}
+		if (config.BrowseFiles != 2) {
+			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+		}
+	}, map[string]bool{"windows": true});
 
 	t.Cleanup(func() {
 		defer os.RemoveAll(path + dir + "/1/2")
