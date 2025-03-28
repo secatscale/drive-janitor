@@ -18,9 +18,9 @@ package main
 
 import (
 	"drive-janitor/testhelper"
-	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -61,7 +61,7 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 		if (isAboveMaxDepth(path, config.MaxDepth)) {
 			return fs.SkipDir;
 		}
-		fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
+		//fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
 		if (!entry.Type().IsDir()) {
 			config.BrowseFiles += 1;
 		}
@@ -80,26 +80,25 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 func TestRecursion(t *testing.T) {
 	dir := "test"
 	os.MkdirAll(dir, 0755)
-	dir_one := string(os.PathSeparator) + "1" + string(os.PathSeparator)
-	os.MkdirAll(dir + dir_one, 0755)
+	dir_one := "1"
+	os.MkdirAll(filepath.Join(dir, dir_one), 0755)
 	name := "file.txt"
 	path, err :=  os.Getwd()
 	if (err != nil) {
 		t.Errorf("Error while getting the path: %v", err)
 	}
-	path = path + string(os.PathSeparator)
-	_, err = os.Create(path + dir + string(os.PathSeparator) + name)
+	_, err = os.Create(filepath.Join(path, dir, name))
 	if (err != nil) {
 		t.Errorf("Error while creating file: %v", err)
 	}
-	_, err = os.Create(path + dir + dir_one + "file2.txt")
+	_, err = os.Create(filepath.Join(path, dir, dir_one, "file2.txt"))
 	if (err != nil) {
 		t.Errorf("Error while creating file: %v", err)
 	}
 	t.Run("Test Browsering", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
 			config := RecursionConfig{
-				InitialPath: path + dir,
+				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 2,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
@@ -117,11 +116,11 @@ func TestRecursion(t *testing.T) {
 
 	t.Run("Test max depth", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
-			dir_two := "2" + string(os.PathSeparator)
-			os.MkdirAll(path + dir + dir_one + dir_two, 0755)
-			_, err = os.Create(path + dir + dir_one + dir_two + "file3.txt")
+			dir_two := "2"
+			os.MkdirAll(filepath.Join(path, dir, dir_one, dir_two), 0755)
+			_, err = os.Create(filepath.Join(path, dir, dir_one, dir_two, "file3.txt"))
 			config := RecursionConfig{
-				InitialPath: path + dir,
+				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 2,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
