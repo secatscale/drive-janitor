@@ -138,6 +138,6 @@ func TestRecursion(t *testing.T) {
 
 
 	t.Cleanup(func() {
-		defer os.RemoveAll(path + dir)
+		defer os.RemoveAll(filepath.Join(path + dir))
 	})
 }
