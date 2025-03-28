@@ -73,7 +73,6 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 	return nil
 }
 
-
 // find a way to generate test files easily
 func TestRecursion(t *testing.T) {
 	dir := "test"
@@ -172,7 +171,16 @@ func TestRecursion(t *testing.T) {
 	}, map[string]bool{"windows": true});
 
 	t.Cleanup(func() {
-		defer os.RemoveAll(path + dir + "/1/2")
-		defer os.RemoveAll(dir)
+		path, err := os.Getwd()
+		if (err != nil) {
+			fmt.Println("Error:", err)
+		}
+		if (WhichOs() == "windows") {
+			defer os.RemoveAll(path)
+
+		} else {
+			defer os.RemoveAll(path + dir + "/1/2")
+			defer os.RemoveAll(dir)
+		}
 	})
 }
