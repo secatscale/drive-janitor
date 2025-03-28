@@ -88,23 +88,47 @@ func TestRecursion(t *testing.T) {
 	if (err != nil) {
 		t.Errorf("Error while creating file: %v", err)
 	}
-	testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
-		config := RecursionConfig{
-			InitialPath: "./test",
-			MaxDepth: 1,
-			SkipDirectories: []string{},
-			PriorityDirectories: []string{},
-			BrowseFiles: 0,
-		}
-		err = config.recurse()
-		if (err != nil) {
-			t.Errorf("Error while browsing files: %v", err)
-		}
-		if (config.BrowseFiles != 2) {
-			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
-		}
-	}, map[string]bool{"linux": true, "darwin": true});
+	t.Run("Test max depth for Linux/Darwin", func(t *testing.T) {
+		testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
+			os.MkdirAll("test/1/2", 0755)
+			_, err = os.Create(path + dir + "/1/2/" + "file3.txt")
+			config := RecursionConfig{
+				InitialPath: "./test",
+				MaxDepth: 1,
+				SkipDirectories: []string{},
+				PriorityDirectories: []string{},
+				BrowseFiles: 0,
+			}
+			err = config.recurse()
+			if (err != nil) {
+				t.Errorf("Error while browsing files: %v", err)
+			}
+			if (config.BrowseFiles != 2) {
+				t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+			}
+		}, map[string]bool{"linux": true, "darwin": true})
+	})
 
+	t.Run("Test Browsering for Linux/Darwin", func(t *testing.T) {
+		testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
+			config := RecursionConfig{
+				InitialPath: "./test",
+				MaxDepth: 1,
+				SkipDirectories: []string{},
+				PriorityDirectories: []string{},
+				BrowseFiles: 0,
+			}
+			err = config.recurse()
+			if (err != nil) {
+				t.Errorf("Error while browsing files: %v", err)
+			}
+			if (config.BrowseFiles != 2) {
+				t.Errorf("Expected 2files, got %d", config.BrowseFiles)
+			}
+		}, map[string]bool{"linux": true, "darwin": true})
+	});
+
+	t.Run("Test max depth Linux/Darwin", func(t *testing.T) {
 	testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
 		os.MkdirAll("test/1/2", 0755)
 		_, err = os.Create(path + dir + "/1/2/" + "file3.txt")
@@ -122,8 +146,9 @@ func TestRecursion(t *testing.T) {
 		if (config.BrowseFiles != 2) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
-	}, map[string]bool{"linux": true, "darwin": true});
+	}, map[string]bool{"linux": true, "darwin": true})});
 
+	t.Run("Test Browsering for Windows", func(t *testing.T) {
 	testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
 		path, err := os.Getwd()
 	if err != nil {
@@ -144,8 +169,10 @@ func TestRecursion(t *testing.T) {
 		if (config.BrowseFiles != 2) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
-	}, map[string]bool{"windows": true});
+	}, map[string]bool{"windows": true})});
 
+
+	t.Run("Test max depth windows", func(t *testing.T) {
 	testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
 		path, err := os.Getwd()
 		if err != nil {
@@ -168,7 +195,7 @@ func TestRecursion(t *testing.T) {
 		if (config.BrowseFiles != 2) {
 			t.Errorf("Expected 2files, got %d", config.BrowseFiles)
 		}
-	}, map[string]bool{"windows": true});
+	}, map[string]bool{"windows": true})});
 
 	t.Cleanup(func() {
 		path, err := os.Getwd()
