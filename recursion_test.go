@@ -58,6 +58,7 @@ func isAboveMaxDepth(path string, maxDepth int) bool {
 func (config *RecursionConfig) recurse(/* May take dectection and action struct*/) error {
 	initialPathFs := os.DirFS(config.InitialPath);
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
+		path = filepath.FromSlash(path)
 		if (isAboveMaxDepth(path, config.MaxDepth)) {
 			return fs.SkipDir;
 		}
