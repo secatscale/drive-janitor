@@ -18,7 +18,6 @@ package main
 
 import (
 	"drive-janitor/testhelper"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -54,7 +53,7 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 	initialPathFs := os.DirFS(config.InitialPath);
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
-		fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
+	//	fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
 		if (isAboveMaxDepth(path, config.MaxDepth)) {
 			return fs.SkipDir;
 		}
