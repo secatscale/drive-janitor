@@ -21,6 +21,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -32,12 +33,6 @@ type RecursionConfig struct {
 	PriorityDirectories []string
 	BrowseFiles int
 }
-
-// Test 1 -> checker la max depth
-// Test 2 -> checker qu'on parcours bien tous les fichiers
-
-
-// cette function parcours toues les fichiers et dossiers
 
 func countSeparator(path string) int {
 	count := strings.Split(path, string(os.PathSeparator))
@@ -77,24 +72,41 @@ func (config *RecursionConfig) recurse(/* May take dectection and action struct*
 	return nil
 }
 
+func	generateTestFS(layers int, filesInfo map[int][]string) {
+	path, err := os.Getwd()
+	if (err != nil) {
+		panic(err)
+	}
+	for i := range layers {
+		path = filepath.Join(path, strconv.Itoa(i))
+		err = os.MkdirAll(path, 0755)
+		if (err != nil) {
+			panic(err)
+		}
+		filename, layerExist := filesInfo[i]
+		if (layerExist) {
+			for _, file := range filename {
+				_, err = os.Create(filepath.Join(path, file))
+				if (err != nil) {
+					panic(err)
+				}
+			}
+		}
+	}
+}
+
 // find a way to generate test files easily
 func TestRecursion(t *testing.T) {
-	dir := "test"
-	os.MkdirAll(dir, 0755)
-	dir_one := "1"
-	os.MkdirAll(filepath.Join(dir, dir_one), 0755)
-	name := "file.txt"
+	generateTestFS(3, map[int][]string{
+		0: {"file.txt"},
+		1: {"file1.txt"},
+		2: {"file2.txt"},
+		3: {"file3.txt"},
+	})
+	dir := "0"
 	path, err :=  os.Getwd()
 	if (err != nil) {
-		t.Errorf("Error while getting the path: %v", err)
-	}
-	_, err = os.Create(filepath.Join(path, dir, name))
-	if (err != nil) {
-		t.Errorf("Error while creating file: %v", err)
-	}
-	_, err = os.Create(filepath.Join(path, dir, dir_one, "file2.txt"))
-	if (err != nil) {
-		t.Errorf("Error while creating file: %v", err)
+		t.Fatalf("Error getting current directory: %v", err)
 	}
 	t.Run("Test Browsering", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test Browsering", func(t *testing.T) {
@@ -117,9 +129,6 @@ func TestRecursion(t *testing.T) {
 
 	t.Run("Test max depth", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test max depth", func(t *testing.T) {
-			dir_two := "2"
-			os.MkdirAll(filepath.Join(path, dir, dir_one, dir_two), 0755)
-			_, err = os.Create(filepath.Join(path, dir, dir_one, dir_two, "file3.txt"))
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 2,
@@ -139,6 +148,6 @@ func TestRecursion(t *testing.T) {
 
 
 	t.Cleanup(func() {
-		defer os.RemoveAll(filepath.Join(path + dir))
+		defer os.RemoveAll(filepath.Join(path, dir))
 	})
 }
