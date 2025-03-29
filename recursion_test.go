@@ -113,7 +113,6 @@ func TestRecursionComplex(t *testing.T) {
 	if (err != nil) {
 		t.Fatalf("Error getting current directory: %v", err)
 	}
-	t.Run("Test with max depth 3", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test with max depth 3", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -132,8 +131,6 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
-	})
-	t.Run("Test with max depth 5", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -152,8 +149,6 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
-	})
-	t.Run("Test with max depth 8", func(t *testing.T) {
 		testhelper.RunOSDependentTest(t, "Test all depths", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -172,7 +167,6 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
-	})
 	t.Cleanup(func() {
 		defer os.RemoveAll(filepath.Join(path, dir))
 	})
