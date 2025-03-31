@@ -116,6 +116,8 @@ func TestRecursionComplex(t *testing.T) {
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
+
+
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
