@@ -1,6 +1,7 @@
 package main
 
 import (
+	"drive-janitor/detection"
 	"drive-janitor/recursion"
 	"flag"
 	"fmt"
@@ -64,6 +65,20 @@ func main() {
 		SkipDirectories: []string{},
 		PriorityDirectories: []string{},
 	}
+
+	mime, err := detection.GetMimeType(extension)
+	if err != nil {
+		fmt.Println("Error getting MIME type:", err)
+		os.Exit(1)
+	}
+
+	detection := detection.DetectionConfig{
+		MimeType: mime,
+		Age: -1,
+	}
+
+	fmt.Println("MIME type:", detection.MimeType)
+	
 	recursion.Recurse()
 	fmt.Println(recursion.BrowseFiles, path)
 
