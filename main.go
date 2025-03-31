@@ -79,7 +79,7 @@ func main() {
 
 	fmt.Println("MIME type:", detection.MimeType)
 	
-	recursion.Recurse()
+	recursion.Recurse(detection)
 	fmt.Println(recursion.BrowseFiles, path)
 
 	fmt.Printf("Scanning directory: %s\n", path)

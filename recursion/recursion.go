@@ -1,6 +1,8 @@
 package recursion
 
 import (
+	"drive-janitor/detection"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -25,7 +27,21 @@ func isAboveMaxDepth(path string, maxDepth int) bool {
 	return getDepth(path) > maxDepth
 }
 
-func (config *RecursionConfig) Recurse(/* May take dectection and action struct*/) error {
+func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, error) {
+	// Call la function check type sur le path
+	typeMatch, err := detectionConfig.FileTypeMatching(path);
+	if (err != nil) {
+		return false, err;
+	}
+	// Call la function check age sur le path
+	ageMatch, err := detectionConfig.FileAgeMatching(path);
+	if (err != nil) {
+		return false, err;
+	}
+	return typeMatch && ageMatch, nil
+}
+
+func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig/* May take dectection and action struct*/) error {
 	initialPathFs := os.DirFS(config.InitialPath);
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
@@ -34,6 +50,16 @@ func (config *RecursionConfig) Recurse(/* May take dectection and action struct*
 			return fs.SkipDir;
 		}
 		if (entry.Type().IsRegular()) {
+			// We should check if the file should be detected or not
+			// If it is, then we do the action
+			needAction, err := isDetected(path, detectionConfig)
+			if (err != nil) {
+				return err
+			}
+			if (needAction) {
+				fmt.Println("Detected file: ", path)
+				// call the action
+			}
 			config.BrowseFiles += 1;
 		}
 		if (err != nil) {
