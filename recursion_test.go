@@ -1,59 +1,13 @@
 package main
 
 import (
+	"drive-janitor/recursion"
 	"drive-janitor/testhelper"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 )
-
-type RecursionConfig struct {
-	InitialPath string
-	MaxDepth int
-	SkipDirectories []string
-	PriorityDirectories []string
-	BrowseFiles int
-}
-
-func countSeparator(path string) int {
-	if (!strings.ContainsRune(path, os.PathSeparator)) {
-		return 0;
-	}
-	return strings.Count(path, string(os.PathSeparator))
-}
-
-func getDepth(path string) int {
-	return countSeparator(path)
-}
-
-func isAboveMaxDepth(path string, maxDepth int) bool {
-	return getDepth(path) > maxDepth
-}
-
-func (config *RecursionConfig) recurse(/* May take dectection and action struct*/) error {
-	initialPathFs := os.DirFS(config.InitialPath);
-	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
-		path = filepath.FromSlash(path)
-	//	fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
-		if (isAboveMaxDepth(path, config.MaxDepth)) {
-			return fs.SkipDir;
-		}
-		if (!entry.Type().IsDir()) {
-			config.BrowseFiles += 1;
-		}
-		if (err != nil) {
-			return err
-		}
-		return nil
-	})
-	if (err != nil) {
-		return err
-	}
-	return nil
-}
 
 func	generateTestFS(layers int, filesInfo map[int][]string) {
 	path, err := os.Getwd()
@@ -98,14 +52,14 @@ func TestRecursionComplex(t *testing.T) {
 		t.Fatalf("Error getting current directory: %v", err)
 	}
 		testhelper.RunOSDependentTest(t, "Test with max depth 3", func(t *testing.T) {
-			config := RecursionConfig{
+			config := recursion.RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 3,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -119,14 +73,14 @@ func TestRecursionComplex(t *testing.T) {
 
 
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
-			config := RecursionConfig{
+			config := recursion.RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 5,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -138,14 +92,14 @@ func TestRecursionComplex(t *testing.T) {
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
 		testhelper.RunOSDependentTest(t, "Test all depths", func(t *testing.T) {
-			config := RecursionConfig{
+			config := recursion.RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 8,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
