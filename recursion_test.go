@@ -1,19 +1,3 @@
-/*
-	config recursion:
-		* max depth
-		* skip directories (regex)
-		* priority directories (regex)
-*/
-
-/*
-	// struct recursion with info path depth etc
-	// struct de detection
-	// struct d'action
-	recursion(struct recursion, )
-
-	on a la recursion qui loop, et en fonction de la config, on aura la detection, donc idealement la recursion prend une structure avec la config de detection
-*/
-
 package main
 
 import (
@@ -131,6 +115,9 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
+
+
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -149,6 +136,7 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
 		testhelper.RunOSDependentTest(t, "Test all depths", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -167,6 +155,7 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
 	t.Cleanup(func() {
 		defer os.RemoveAll(filepath.Join(path, dir))
 	})
