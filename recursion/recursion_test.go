@@ -1,7 +1,6 @@
-package main
+package recursion
 
 import (
-	"drive-janitor/recursion"
 	"drive-janitor/testhelper"
 	"os"
 	"path/filepath"
@@ -52,7 +51,7 @@ func TestRecursionComplex(t *testing.T) {
 		t.Fatalf("Error getting current directory: %v", err)
 	}
 		testhelper.RunOSDependentTest(t, "Test with max depth 3", func(t *testing.T) {
-			config := recursion.RecursionConfig{
+			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 3,
 				SkipDirectories: []string{},
@@ -70,10 +69,8 @@ func TestRecursionComplex(t *testing.T) {
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
-
-
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
-			config := recursion.RecursionConfig{
+			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 5,
 				SkipDirectories: []string{},
@@ -92,7 +89,7 @@ func TestRecursionComplex(t *testing.T) {
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
 		testhelper.RunOSDependentTest(t, "Test all depths", func(t *testing.T) {
-			config := recursion.RecursionConfig{
+			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 8,
 				SkipDirectories: []string{},
@@ -109,6 +106,49 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
+		testhelper.RunOSDependentTest(t, "Test symlinks not counted", func(t *testing.T) {
+			// Create a symlink to a file and directory
+			fileToLink := filepath.Join(path, dir, "level1_1.txt")
+			linkToFile := filepath.Join(path, dir, "symlink_to_file.txt")
+			dirToLink := filepath.Join(path, dir, "1")
+			linkToDir := filepath.Join(path, dir, "symlink_to_dir")
+			
+			// Create the symlinks
+			err = os.Symlink(fileToLink, linkToFile)
+			if err != nil {
+				t.Skipf("Couldn't create symlink (might need elevated permissions): %v", err)
+			}
+			
+			err = os.Symlink(dirToLink, linkToDir)
+			if err != nil {
+				os.Remove(linkToFile) // Clean up first symlink
+				t.Skipf("Couldn't create symlink (might need elevated permissions): %v", err)
+			}
+			
+			config := RecursionConfig{
+				InitialPath: filepath.Join(path, dir),
+				MaxDepth: -1,
+				SkipDirectories: []string{},
+				PriorityDirectories: []string{},
+				BrowseFiles: 0,
+			}
+			
+			err = config.Recurse()
+			if err != nil {
+				t.Errorf("Error while browsing files: %v", err)
+			}
+			
+			// Should still count only the 24 regular files, not the symlinks
+			expectedFiles := 24
+			if config.BrowseFiles != expectedFiles {
+				t.Errorf("Expected %d files, got %d (symlinks should not be counted)", expectedFiles, config.BrowseFiles)
+			}
+			
+			// Clean up symlinks
+			os.Remove(linkToFile)
+			os.Remove(linkToDir)
+		}, map[string]bool{"linux": true, "darwin": true, "windows": false}) // Symlinks work differently on Windows
 
 	t.Cleanup(func() {
 		defer os.RemoveAll(filepath.Join(path, dir))
