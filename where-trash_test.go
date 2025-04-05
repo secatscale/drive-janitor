@@ -28,7 +28,7 @@ func TestWhereTrash(t *testing.T) {
 		osName    string
 		trashPath string
 	}{
-		{testName: "Windows", osName: "windows", trashPath: filepath.Join(os.Getenv("SystemDrive"), "$Recycle.Bin", windowsSID)},
+		{testName: "Windows", osName: "windows", trashPath: filepath.Join(os.Getenv("SystemDrive")+"\\", "$Recycle.Bin", windowsSID)},
 		{testName: "Linux", osName: "linux", trashPath: filepath.Join(home, ".local", "share", "Trash")},
 		{testName: "Darwin", osName: "darwin", trashPath: filepath.Join(home, ".Trash")},
 	}
