@@ -255,7 +255,7 @@ func getTrashedSamplePaths() (filePath, metaPath string, err error) {
 	}
 	switch WhichOs() {
 	case "windows":
-		filePath, metaPath, err = GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
+		filePath, metaPath, err = GetWindowsTrashedFilePaths(trashPath, "delete_me.txt")
 		if err != nil {
 			return "", "", fmt.Errorf("GetWindowsTrashedSamplePaths() returned an error: %v", err)
 		}
