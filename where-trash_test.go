@@ -166,16 +166,15 @@ func decodeIFile(path string) (string, error) {
 		return "", err
 	}
 	length := binary.LittleEndian.Uint32(data[24:28])
+	if length == 0 {
+		return "", fmt.Errorf("length is 0")
+	}
+	// Read the UTF-16 string from the file
 	u16 := make([]uint16, length/2)
-	if length%2 != 0 {
-		return "", fmt.Errorf("Invalid length %d", length)
+	if len(data) < int(length+28) {
+		return "", fmt.Errorf("file is too short")
 	}
-	if length > 0 {
-		err = binary.Read(data[28:], binary.LittleEndian, u16)
-		if err != nil {
-			return "", fmt.Errorf("binary.Read() returned an error: %v", err)
-		}
-	}
+	copy(u16, data[28:28+length])
 	// Decode the UTF-16 string
 	str := string(utf16.Decode(u16))
 	fmt.Println("Decoded string:", str)
