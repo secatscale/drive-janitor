@@ -165,21 +165,28 @@ func decodeIFile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if len(data) < 24 {
+	if len(data) < 20 {
 		return "", fmt.Errorf("invalid .trashinfo format")
 	}
+	// longueur de la chaîne UTF-16 en caractères
+	strLen := binary.LittleEndian.Uint32(data[16:20])
 
-	utf16data := data[24:]
-	u16 := make([]uint16, len(utf16data)/2)
-	for i := range u16 {
-		u16[i] = binary.LittleEndian.Uint16(utf16data[i*2:])
+	// récupération de la chaîne UTF-16 à partir de l'offset 20 (0x14)
+	rawUtf16 := data[20 : 20+strLen*2] // 2 bytes par caractère
+
+	u16 := make([]uint16, strLen)
+	for i := 0; i < int(strLen); i++ {
+		u16[i] = binary.LittleEndian.Uint16(rawUtf16[i*2 : i*2+2])
 	}
-	str := string(utf16.Decode(u16))
-	fmt.Println("Decoded string:", str)
-	return strings.TrimRight(str, "\x00"), nil
+
+	decoded := string(utf16.Decode(u16))
+	decoded = strings.TrimRight(decoded, "\x00")
+
+	fmt.Println("Decoded string:", decoded)
+	return decoded, nil
 }
 
-func GetWindowsTrashedSamplePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
+func GetWindowsTrashedFilePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
 	entries, err := os.ReadDir(trashPath)
 	if err != nil {
 		return "", "", fmt.Errorf("os.ReadDir(%s) returned an error: %v", trashPath, err)
@@ -210,7 +217,7 @@ func isTrashedSampleInTrash(trashPath string) (bool, error) {
 	var err error
 	switch WhichOs() {
 	case "windows":
-		filePath, _, err := GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
+		filePath, _, err := GetWindowsTrashedFilePaths(trashPath, "delete_me.txt")
 		if err != nil {
 			return false, fmt.Errorf("GetWindowsTrashedSamplePaths() returned an error: %v", err)
 		}
