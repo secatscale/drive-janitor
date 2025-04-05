@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bufio"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf16"
 )
 
 // TestWhereTrash tests the WhereTrash function that returns the path to the trash folder for an OS
@@ -158,32 +159,47 @@ func trashSample() error {
 	return nil
 }
 
+func decodeIFile(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	if len(data) < 24 {
+		return "", fmt.Errorf("invalid .trashinfo format")
+	}
+
+	utf16data := data[24:]
+	u16 := make([]uint16, len(utf16data)/2)
+	for i := range u16 {
+		u16[i] = binary.LittleEndian.Uint16(utf16data[i*2:])
+	}
+	str := string(utf16.Decode(u16))
+	fmt.Println("Decoded string:", str)
+	return strings.TrimRight(str, "\x00"), nil
+}
+
 func GetWindowsTrashedSamplePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
 	entries, err := os.ReadDir(trashPath)
 	if err != nil {
 		return "", "", fmt.Errorf("os.ReadDir(%s) returned an error: %v", trashPath, err)
 	}
+	originalFileName = strings.ToLower(originalFileName)
+
 	for _, entry := range entries {
 		name := entry.Name()
 		if strings.HasPrefix(name, "$I") {
-			// look inside the file if it contains the name of the file "delete_me.txt"
-			file, err := os.Open(filepath.Join(trashPath, name))
+			metaFile := filepath.Join(trashPath, name)
+			originalPath, err := decodeIFile(metaFile)
 			if err != nil {
-				return "", "", fmt.Errorf("os.Open() returned an error: %v", err)
+				continue
 			}
-			defer file.Close()
-			scanner := bufio.NewScanner(file)
-			for scanner.Scan() {
-				line := scanner.Text()
-				fmt.Println(line)
-				if strings.Contains(line, originalFileName) {
-					return filepath.Join(trashPath, name), filepath.Join(trashPath, strings.Replace(name, "$I", "$R", 1)), nil
-				}
+			if strings.HasSuffix(strings.ToLower(originalPath), originalFileName) {
+				realFile := filepath.Join(trashPath, strings.Replace(name, "$I", "$R", 1))
+				return realFile, metaFile, nil
 			}
-			if err := scanner.Err(); err != nil {
-				return "", "", fmt.Errorf("scanner.Err() returned an error: %v", err)
-			}
+
 		}
+
 	}
 	return "", "", fmt.Errorf("file %s not found in trash folder %s", originalFileName, trashPath)
 }
