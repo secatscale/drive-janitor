@@ -21,7 +21,7 @@ func GetWindowsTrashPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(drive, "$Recycle.Bin", sid), nil
+	return filepath.Join(drive+"\\", "$Recycle.Bin", sid), nil
 }
 
 // GetCurrentUser returns the current user on windows
