@@ -202,7 +202,7 @@ func GetWindowsTrashedSamplePaths(trashPath string, originalFileName string) (fi
 		}
 
 	}
-	return "", "", fmt.Errorf("file %s not found in trash folder %s", originalFileName, trashPath)
+	return "", "", nil
 }
 
 // isTrashedSampleInTrash checks if the sample file is in the trash folder
@@ -210,9 +210,19 @@ func isTrashedSampleInTrash(trashPath string) (bool, error) {
 	var err error
 	switch WhichOs() {
 	case "windows":
-		_, _, err := GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
+		filePath, _, err := GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
 		if err != nil {
 			return false, fmt.Errorf("GetWindowsTrashedSamplePaths() returned an error: %v", err)
+		}
+		if filePath == "" {
+			return false, nil
+		}
+		_, err = os.Stat(filePath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return false, nil
+			}
+			return false, fmt.Errorf("os.Stat() returned an error: %v", err)
 		}
 		return true, nil
 	case "linux":
