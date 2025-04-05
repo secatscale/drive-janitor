@@ -162,31 +162,35 @@ func trashSample() error {
 
 func decodeIFile(path string) (string, error) {
 	data, err := os.ReadFile(path)
+	fmt.Println("data", data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read file: %w", err)
 	}
+
 	if len(data) < 20 {
-		return "", fmt.Errorf("invalid $I file: too short")
+		return "", fmt.Errorf("invalid $I file: too short (%d bytes)", len(data))
 	}
 
+	// Longueur de la chaîne en UTF-16
 	strLen := binary.LittleEndian.Uint32(data[16:20])
-	expectedSize := 20 + int(strLen)*2
+	if strLen == 0 || strLen > 4096 {
+		return "", fmt.Errorf("invalid $I file: suspicious string length %d", strLen)
+	}
 
+	expectedSize := 20 + int(strLen)*2
 	if expectedSize > len(data) {
-		return "", fmt.Errorf("invalid $I file: declared string length too large (%d bytes, file is only %d bytes)", expectedSize, len(data))
+		return "", fmt.Errorf("invalid $I file: declared string length (%d bytes) exceeds file size (%d bytes)", expectedSize, len(data))
 	}
 
 	rawUtf16 := data[20:expectedSize]
+
 	u16 := make([]uint16, strLen)
 	for i := 0; i < int(strLen); i++ {
 		u16[i] = binary.LittleEndian.Uint16(rawUtf16[i*2 : i*2+2])
 	}
 
 	decoded := string(utf16.Decode(u16))
-	decoded = strings.TrimRight(decoded, "\x00")
-
-	fmt.Println("Decoded string:", decoded)
-	return decoded, nil
+	return strings.TrimRight(decoded, "\x00"), nil
 }
 
 func GetWindowsTrashedFilePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
