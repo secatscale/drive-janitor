@@ -169,16 +169,11 @@ func decodeIFile(path string) (string, error) {
 	if length == 0 {
 		return "", fmt.Errorf("length is 0")
 	}
-	// Read the UTF-16 string from the file
-	u16 := make([]uint16, length/2)
-	if len(data) < int(length+28) {
-		return "", fmt.Errorf("file is too short")
+	if length+28 > uint32(len(data)) {
+		return "", fmt.Errorf("length is greater than data length")
 	}
-	copy(u16, data[28:28+length])
-	// Decode the UTF-16 string
-	str := string(utf16.Decode(u16))
-	fmt.Println("Decoded string:", str)
-	return strings.TrimRight(str, "\x00"), nil
+	decoded := data[28 : length+28]
+	return string(utf16.Decode(decoded)), nil
 }
 
 func GetWindowsTrashedFilePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
