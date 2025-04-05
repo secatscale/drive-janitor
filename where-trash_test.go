@@ -134,6 +134,7 @@ func trashSample() error {
 		psScript := fmt.Sprintf(`
 		Add-Type -AssemblyName Microsoft.VisualBasic
 		[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("%s", 'OnlyErrorDialogs', 'SendToRecycleBin')`, absPath)
+		fmt.Println("Powershell script:", psScript)
 		cmd = exec.Command("powershell", "-Command", psScript)
 	case "linux":
 		//verify gio is installed
