@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -20,12 +22,13 @@ func TestWhereTrash(t *testing.T) {
 		}
 	})
 	home, _ := os.UserHomeDir()
+	windowsSID, _ := GetCurrentUserSID()
 	trashTests := []struct {
 		testName  string
 		osName    string
 		trashPath string
 	}{
-		{testName: "Windows", osName: "windows", trashPath: "C:\\$Recycle.Bin"},
+		{testName: "Windows", osName: "windows", trashPath: filepath.Join(os.Getenv("SystemDrive"), "$Recycle.Bin", windowsSID)},
 		{testName: "Linux", osName: "linux", trashPath: filepath.Join(home, ".local", "share", "Trash")},
 		{testName: "Darwin", osName: "darwin", trashPath: filepath.Join(home, ".Trash")},
 	}
@@ -127,7 +130,9 @@ func trashSample() error {
 	var cmd *exec.Cmd
 	switch WhichOs() {
 	case "windows":
-		psScript := fmt.Sprintf(`[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("%s", 'OnlyErrorDialogs', 'SendToRecycleBin')`, absPath)
+		psScript := fmt.Sprintf(`
+		Add-Type -AssemblyName Microsoft.VisualBasic
+		[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("%s", 'OnlyErrorDialogs', 'SendToRecycleBin')`, absPath)
 		cmd = exec.Command("powershell", "-Command", psScript)
 	case "linux":
 		//verify gio is installed
@@ -153,12 +158,46 @@ func trashSample() error {
 	return nil
 }
 
+func GetWindowsTrashedSamplePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
+	entries, err := os.ReadDir(trashPath)
+	if err != nil {
+		return "", "", fmt.Errorf("os.ReadDir(%s) returned an error: %v", trashPath, err)
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasPrefix(name, "$I") {
+			// look inside the file if it contains the name of the file "delete_me.txt"
+			file, err := os.Open(filepath.Join(trashPath, name))
+			if err != nil {
+				return "", "", fmt.Errorf("os.Open() returned an error: %v", err)
+			}
+			defer file.Close()
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := scanner.Text()
+				fmt.Println(line)
+				if strings.Contains(line, "originalFileName") {
+					return filepath.Join(trashPath, name), filepath.Join(trashPath, strings.Replace(name, "$I", "$R", 1)), nil
+				}
+			}
+			if err := scanner.Err(); err != nil {
+				return "", "", fmt.Errorf("scanner.Err() returned an error: %v", err)
+			}
+		}
+	}
+	return "", "", fmt.Errorf("file %s not found in trash folder %s", originalFileName, trashPath)
+}
+
 // isTrashedSampleInTrash checks if the sample file is in the trash folder
 func isTrashedSampleInTrash(trashPath string) (bool, error) {
 	var err error
 	switch WhichOs() {
 	case "windows":
-		_, err = os.Stat(filepath.Join(trashPath, "delete_me.txt"))
+		_, _, err := GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
+		if err != nil {
+			return false, fmt.Errorf("GetWindowsTrashedSamplePaths() returned an error: %v", err)
+		}
+		return true, nil
 	case "linux":
 		_, err = os.Stat(filepath.Join(trashPath, "files", "delete_me.txt"))
 	case "darwin":
@@ -181,7 +220,13 @@ func getTrashedSamplePaths() (filePath, metaPath string, err error) {
 		return "", "", fmt.Errorf("WhereTrash() returned an error: %v", err)
 	}
 	switch WhichOs() {
-	case "windows", "darwin":
+	case "windows":
+		filePath, metaPath, err = GetWindowsTrashedSamplePaths(trashPath, "delete_me.txt")
+		if err != nil {
+			return "", "", fmt.Errorf("GetWindowsTrashedSamplePaths() returned an error: %v", err)
+		}
+		return filePath, metaPath, nil
+	case "darwin":
 		filePath = filepath.Join(trashPath, "delete_me.txt")
 		return filePath, "", nil
 	case "linux":

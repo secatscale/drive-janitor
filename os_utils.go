@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,11 +17,11 @@ func WhichOs() string {
 func WhereTrash(osName string) (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get user home directory: %v", err)
 	}
 	switch osName {
 	case "windows":
-		return filepath.Join("C:", "$Recycle.Bin"), nil
+		return GetWindowsTrashPath()
 	case "linux":
 		return filepath.Join(home, ".local", "share", "Trash"), nil
 	case "darwin":
