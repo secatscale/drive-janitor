@@ -166,14 +166,17 @@ func decodeIFile(path string) (string, error) {
 		return "", err
 	}
 	if len(data) < 20 {
-		return "", fmt.Errorf("invalid .trashinfo format")
+		return "", fmt.Errorf("invalid $I file: too short")
 	}
-	// longueur de la chaîne UTF-16 en caractères
+
 	strLen := binary.LittleEndian.Uint32(data[16:20])
+	expectedSize := 20 + int(strLen)*2
 
-	// récupération de la chaîne UTF-16 à partir de l'offset 20 (0x14)
-	rawUtf16 := data[20 : 20+strLen*2] // 2 bytes par caractère
+	if expectedSize > len(data) {
+		return "", fmt.Errorf("invalid $I file: declared string length too large (%d bytes, file is only %d bytes)", expectedSize, len(data))
+	}
 
+	rawUtf16 := data[20:expectedSize]
 	u16 := make([]uint16, strLen)
 	for i := 0; i < int(strLen); i++ {
 		u16[i] = binary.LittleEndian.Uint16(rawUtf16[i*2 : i*2+2])
