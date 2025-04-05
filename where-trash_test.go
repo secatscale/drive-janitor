@@ -176,7 +176,7 @@ func GetWindowsTrashedSamplePaths(trashPath string, originalFileName string) (fi
 			for scanner.Scan() {
 				line := scanner.Text()
 				fmt.Println(line)
-				if strings.Contains(line, "originalFileName") {
+				if strings.Contains(line, originalFileName) {
 					return filepath.Join(trashPath, name), filepath.Join(trashPath, strings.Replace(name, "$I", "$R", 1)), nil
 				}
 			}
