@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
-	"unicode/utf16"
+
+	"github.com/gobelinor/info2parser"
 )
 
 // TestWhereTrash tests the WhereTrash function that returns the path to the trash folder for an OS
@@ -165,15 +165,15 @@ func decodeIFile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	length := binary.LittleEndian.Uint32(data[24:28])
-	if length == 0 {
-		return "", fmt.Errorf("length is 0")
+	info, err = info2parser.Parse(data)
+	if err != nil {
+		return "", err
 	}
-	if length+28 > uint32(len(data)) {
-		return "", fmt.Errorf("length is greater than data length")
+	originalPath := info.GetOriginalPath()
+	if originalPath == "" {
+		return "", fmt.Errorf("original path not found in IFile")
 	}
-	decoded := data[28 : length+28]
-	return string(utf16.Decode(decoded)), nil
+	return originalPath, nil
 }
 
 func GetWindowsTrashedFilePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
