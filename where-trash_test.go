@@ -134,7 +134,6 @@ func trashSample() error {
 		psScript := fmt.Sprintf(`
 		Add-Type -AssemblyName Microsoft.VisualBasic
 		[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("%s", 'OnlyErrorDialogs', 'SendToRecycleBin')`, absPath)
-		// fmt.Println("Powershell script:", psScript)
 		cmd = exec.Command("powershell", "-Command", psScript)
 	case "linux":
 		//verify gio is installed
@@ -160,6 +159,7 @@ func trashSample() error {
 	return nil
 }
 
+// Returns the original path from the IFile (windows) metadata file in the trash
 func decodeIFile(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -176,6 +176,7 @@ func decodeIFile(path string) (string, error) {
 	return originalPath, nil
 }
 
+// GetWindowsTrashedFilePaths returns the file and metadata paths for a given original file name in the Windows trash
 func GetWindowsTrashedFilePaths(trashPath string, originalFileName string) (filePath, metaPath string, err error) {
 	entries, err := os.ReadDir(trashPath)
 	if err != nil {
@@ -219,7 +220,7 @@ func isTrashedSampleInTrash(trashPath string) (bool, error) {
 			if os.IsNotExist(err) {
 				return false, nil
 			}
-			return false, fmt.Errorf("os.Stat() returned an error: %v", err)
+			return false, fmt.Errorf("os.Stat(%s) returned an error: %v", filePath, err)
 		}
 		return true, nil
 	case "linux":
@@ -238,6 +239,7 @@ func isTrashedSampleInTrash(trashPath string) (bool, error) {
 	return true, nil
 }
 
+// getTrashedSamplePaths returns the file and metadata paths for a given original file name in the trash
 func getTrashedSamplePaths() (filePath, metaPath string, err error) {
 	trashPath, err := WhereTrash(WhichOs())
 	if err != nil {
