@@ -169,7 +169,7 @@ func decodeIFile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	originalPath := info.GetOriginalPath()
+	originalPath := info.OriginalPath
 	if originalPath == "" {
 		return "", fmt.Errorf("original path not found in IFile")
 	}
