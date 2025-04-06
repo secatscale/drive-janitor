@@ -165,7 +165,7 @@ func decodeIFile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	info, err = info2parser.Parse(data)
+	info, err := info2parser.Parse(data)
 	if err != nil {
 		return "", err
 	}
