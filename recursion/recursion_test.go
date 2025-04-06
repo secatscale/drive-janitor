@@ -1,59 +1,12 @@
-package main
+package recursion
 
 import (
 	"drive-janitor/testhelper"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 )
-
-type RecursionConfig struct {
-	InitialPath string
-	MaxDepth int
-	SkipDirectories []string
-	PriorityDirectories []string
-	BrowseFiles int
-}
-
-func countSeparator(path string) int {
-	if (!strings.ContainsRune(path, os.PathSeparator)) {
-		return 0;
-	}
-	return strings.Count(path, string(os.PathSeparator))
-}
-
-func getDepth(path string) int {
-	return countSeparator(path)
-}
-
-func isAboveMaxDepth(path string, maxDepth int) bool {
-	return getDepth(path) > maxDepth
-}
-
-func (config *RecursionConfig) recurse(/* May take dectection and action struct*/) error {
-	initialPathFs := os.DirFS(config.InitialPath);
-	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
-		path = filepath.FromSlash(path)
-	//	fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
-		if (isAboveMaxDepth(path, config.MaxDepth)) {
-			return fs.SkipDir;
-		}
-		if (!entry.Type().IsDir()) {
-			config.BrowseFiles += 1;
-		}
-		if (err != nil) {
-			return err
-		}
-		return nil
-	})
-	if (err != nil) {
-		return err
-	}
-	return nil
-}
 
 func	generateTestFS(layers int, filesInfo map[int][]string) {
 	path, err := os.Getwd()
@@ -105,7 +58,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -116,8 +69,6 @@ func TestRecursionComplex(t *testing.T) {
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
-
-
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
 			config := RecursionConfig{
 				InitialPath: filepath.Join(path, dir),
@@ -126,7 +77,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -145,7 +96,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.recurse()
+			err = config.Recurse()
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -155,6 +106,49 @@ func TestRecursionComplex(t *testing.T) {
 				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
 			}
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
+		testhelper.RunOSDependentTest(t, "Test symlinks not counted", func(t *testing.T) {
+			// Create a symlink to a file and directory
+			fileToLink := filepath.Join(path, dir, "level1_1.txt")
+			linkToFile := filepath.Join(path, dir, "symlink_to_file.txt")
+			dirToLink := filepath.Join(path, dir, "1")
+			linkToDir := filepath.Join(path, dir, "symlink_to_dir")
+			
+			// Create the symlinks
+			err = os.Symlink(fileToLink, linkToFile)
+			if err != nil {
+				t.Skipf("Couldn't create symlink (might need elevated permissions): %v", err)
+			}
+			
+			err = os.Symlink(dirToLink, linkToDir)
+			if err != nil {
+				os.Remove(linkToFile) // Clean up first symlink
+				t.Skipf("Couldn't create symlink (might need elevated permissions): %v", err)
+			}
+			
+			config := RecursionConfig{
+				InitialPath: filepath.Join(path, dir),
+				MaxDepth: -1,
+				SkipDirectories: []string{},
+				PriorityDirectories: []string{},
+				BrowseFiles: 0,
+			}
+			
+			err = config.Recurse()
+			if err != nil {
+				t.Errorf("Error while browsing files: %v", err)
+			}
+			
+			// Should still count only the 24 regular files, not the symlinks
+			expectedFiles := 24
+			if config.BrowseFiles != expectedFiles {
+				t.Errorf("Expected %d files, got %d (symlinks should not be counted)", expectedFiles, config.BrowseFiles)
+			}
+			
+			// Clean up symlinks
+			os.Remove(linkToFile)
+			os.Remove(linkToDir)
+		}, map[string]bool{"linux": true, "darwin": true, "windows": false}) // Symlinks work differently on Windows
 
 	t.Cleanup(func() {
 		defer os.RemoveAll(filepath.Join(path, dir))
