@@ -45,7 +45,7 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 	initialPathFs := os.DirFS(config.InitialPath);
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
-		//fmt.Println(getDepth(path), config.InitialPath, path, entry.Type().IsDir())
+		//fmt.Println(isAboveMaxDepth(path, config.MaxDepth), config.InitialPath, path, entry.Type().IsDir())
 		if (isAboveMaxDepth(path, config.MaxDepth)) {
 			return fs.SkipDir;
 		}
