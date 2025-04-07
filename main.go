@@ -12,7 +12,7 @@ func takeArguments(path *string, depth *int, extension *string, action *string) 
 
 	// Get the current working directory
 	currentPath, err := os.Getwd()
-	if (err != nil) {
+	if err != nil {
 		fmt.Println("Error getting current working directory:", err)
 		os.Exit(1)
 	}
@@ -20,7 +20,7 @@ func takeArguments(path *string, depth *int, extension *string, action *string) 
 	// Define command-line flags
 	flag.StringVar(path, "path", currentPath, "Path from where we should to check")
 	flag.IntVar(depth, "depth", -1, "Maximum directory depth to search (negative for no limit)")
-	flag.StringVar(extension, "type", "", "File extension to filter (required)")
+	flag.StringVar(extension, "type", "", "File mimeType to filter (required)")
 	flag.StringVar(action, "action", "list", "Action to perform on files (list, count, size, delete)")
 
 	// Parse flags
@@ -35,8 +35,8 @@ func validateArguments(path string, depth int, extension string, action string) 
 		os.Exit(1)
 	}
 
-	if (extension == "") {
-		fmt.Println("Error: file extension must be provided with -ext flag")
+	if extension == "" {
+		fmt.Println("Error: file extension must be provided with -type flag")
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -47,10 +47,10 @@ func main() {
 	// Temporary taking arguments from command line
 	// Define command-line flags
 	var (
-		path	  string
-		depth     int
-		mimeType  string
-		action    string
+		path     string
+		depth    int
+		mimeType string
+		action   string
 	)
 
 	// Take arguments from command line
@@ -59,10 +59,10 @@ func main() {
 	validateArguments(path, depth, mimeType, action)
 
 	recursion := recursion.RecursionConfig{
-		InitialPath: path,
-		MaxDepth: depth,
-		BrowseFiles: 0,
-		SkipDirectories: []string{},
+		InitialPath:         path,
+		MaxDepth:            depth,
+		BrowseFiles:         0,
+		SkipDirectories:     []string{},
 		PriorityDirectories: []string{},
 	}
 
@@ -71,18 +71,18 @@ func main() {
 		fmt.Println("Error getting MIME type:", err)
 		os.Exit(1)
 	}
-	if (!mimeIsSupported) {
+	if !mimeIsSupported {
 		fmt.Println("Error: MIME type not supported")
 		os.Exit(1)
 	}
 
 	detection := detection.DetectionConfig{
 		MimeType: mimeType,
-		Age: -1,
+		Age:      -1,
 	}
 
 	fmt.Println("MIME type:", detection.MimeType)
-	
+
 	recursion.Recurse(detection)
 	fmt.Println(recursion.BrowseFiles, path)
 
