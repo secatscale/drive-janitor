@@ -43,8 +43,6 @@ func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, e
 
 func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig/* May take dectection and action struct*/) error {
 	initialPathFs := os.DirFS(config.InitialPath);
-	path2 := filepath.FromSlash(config.InitialPath)
-	fmt.Println("Initial path: ", path2)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
 		//fmt.Println(isAboveMaxDepth(path, config.MaxDepth), config.InitialPath, path, entry.Type().IsDir())
