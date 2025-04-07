@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func takeArguments(path *string, depth *int, extension *string, action *string) {
+func takeArguments(path *string, depth *int, extension *string, action *string, age *int) {
 
 	// Get the current working directory
 	currentPath, err := os.Getwd()
@@ -22,12 +22,13 @@ func takeArguments(path *string, depth *int, extension *string, action *string) 
 	flag.IntVar(depth, "depth", -1, "Maximum directory depth to search (negative for no limit)")
 	flag.StringVar(extension, "type", "", "File mimeType to filter (required)")
 	flag.StringVar(action, "action", "list", "Action to perform on files (list, count, size, delete)")
+	flag.IntVar(age, "age", -1, "Age of files to filter (in days, negative for no limit)")
 
 	// Parse flags
 	flag.Parse()
 }
 
-func validateArguments(path string, depth int, extension string, action string) {
+func validateArguments(path string, depth int, extension string, action string, age int) {
 	// Validate that path is provided
 	if path == "" {
 		fmt.Println("Error: path must be provided with -path flag")
@@ -51,12 +52,13 @@ func main() {
 		depth    int
 		mimeType string
 		action   string
+		age      int
 	)
 
 	// Take arguments from command line
-	takeArguments(&path, &depth, &mimeType, &action)
+	takeArguments(&path, &depth, &mimeType, &action, &age)
 	// Validate arguments
-	validateArguments(path, depth, mimeType, action)
+	validateArguments(path, depth, mimeType, action, age)
 
 	recursion := recursion.RecursionConfig{
 		InitialPath:         path,
@@ -78,13 +80,13 @@ func main() {
 
 	detection := detection.DetectionConfig{
 		MimeType: mimeType,
-		Age:      -1,
+		Age:      age,
 	}
 
 	fmt.Println("MIME type:", detection.MimeType)
 
 	err = recursion.Recurse(detection)
-	if (err != nil) {
+	if err != nil {
 		fmt.Println("Error while browsing files:", err)
 		os.Exit(1)
 	}
