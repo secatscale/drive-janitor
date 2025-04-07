@@ -65,7 +65,9 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 		if entry.Type().IsRegular() {
 			// We should check if the file should be detected or not
 			// If it is, then we do the action
-			needAction, err := isDetected(filepath.Join(config.InitialPath, path), detectionConfig)
+
+			absolutePath := filepath.Join(config.InitialPath, path)
+			needAction, err := isDetected(absolutePath, detectionConfig)
 			if err != nil {
 				return err
 			}
