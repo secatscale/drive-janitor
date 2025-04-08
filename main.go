@@ -23,6 +23,7 @@ func takeArguments(path *string, depth *int, extension *string, action *string, 
 	flag.StringVar(extension, "type", "", "File mimeType to filter (required)")
 	flag.StringVar(action, "action", "list", "Action to perform on files (list, count, size, delete)")
 	flag.IntVar(age, "age", -1, "Age of files to filter (in days, negative for no limit)")
+	// flag.StringVar(config, "config", "", "Path to the config.yml file (optional)")
 
 	// Parse flags
 	flag.Parse()

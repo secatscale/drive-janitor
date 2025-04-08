@@ -1,7 +1,6 @@
 package detection
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -55,7 +54,8 @@ func CheckType(filePath string) (fileType string, err error) {
 		return "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("error reading file %s: %w", filePath, err)
+		// Attention
+		return "", nil
 	}
 	if len(buf) == 0 {
 		return "empty", nil
