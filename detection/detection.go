@@ -34,7 +34,7 @@ func (detection DetectionConfig) FileAgeMatching(path string) (bool, error) {
 		return false, err
 	}
 	machingAge := detection.Age
-	if age < machingAge {
+	if age > machingAge {
 		return false, nil
 	}
 	// Call la function check age sur le path

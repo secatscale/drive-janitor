@@ -41,13 +41,8 @@ func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, e
 	return typeMatch && ageMatch, nil
 }
 
-<<<<<<< HEAD
 func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig /* May take dectection and action struct*/) error {
 	initialPathFs := os.DirFS(config.InitialPath)
-=======
-func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig/* May take dectection and action struct*/) error {
-	initialPathFs := os.DirFS(config.InitialPath);
->>>>>>> 1c15c04 (cleaned a bit)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
 
