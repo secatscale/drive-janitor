@@ -45,6 +45,19 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
+
+		if err != nil {
+			if os.IsPermission(err) {
+				// skip si on a pas les permissions
+				return nil
+			}
+			return err
+		}
+		if strings.HasPrefix(path, "proc") {
+			// On ignore le dossier proc
+			return fs.SkipDir
+		}
+
 		//fmt.Println(isAboveMaxDepth(path, config.MaxDepth), config.InitialPath, path, entry.Type().IsDir())
 		if isAboveMaxDepth(path, config.MaxDepth) {
 			return fs.SkipDir
@@ -62,13 +75,7 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 			}
 			config.BrowseFiles += 1
 		}
-		if err != nil {
-			return err
-		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

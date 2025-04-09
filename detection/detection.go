@@ -1,6 +1,7 @@
 package detection
 
 import (
+	"bufio"
 	"io"
 	"os"
 	"time"
@@ -33,7 +34,7 @@ func (detection DetectionConfig) FileAgeMatching(path string) (bool, error) {
 		return false, err
 	}
 	machingAge := detection.Age
-	if age > machingAge {
+	if age < machingAge {
 		return false, nil
 	}
 	// Call la function check age sur le path
@@ -41,24 +42,35 @@ func (detection DetectionConfig) FileAgeMatching(path string) (bool, error) {
 }
 
 func CheckType(filePath string) (fileType string, err error) {
+	//Stat rapide pour eviter les fichiers spéciaux
+	info, err := os.Lstat(filePath)
+	if err != nil {
+		return "", err
+	}
+	if !info.Mode().IsRegular() {
+		// Skip sockets, symlinks, devices, etc.
+		return "", nil
+	}
 
 	fd, err := os.Open(filePath)
+	// if permission denied, return empty string
+	if os.IsPermission(err) {
+		return "", nil
+	}
 	if err != nil {
 		return "", err
 	}
 	defer fd.Close()
 
-	buf := make([]byte, 32)
-	n, err := fd.Read(buf)
-	if err == io.EOF {
-		return "", nil
+	reader := bufio.NewReader(fd)
+	buf := make([]byte, 24)
+	n, err := reader.Read(buf)
+	// if file is empty, return empty string
+	if err == io.EOF || n == 0 {
+		return "empty", nil
 	}
 	if err != nil {
-		// Attention
-		return "", nil
-	}
-	if len(buf) == 0 {
-		return "empty", nil
+		return "", err
 	}
 	buf = buf[:n]
 	kind, err := filetype.Match(buf)
@@ -66,8 +78,7 @@ func CheckType(filePath string) (fileType string, err error) {
 		return "", err
 	}
 	if kind == filetype.Unknown {
-		ProbablyText := isProbablyText(buf)
-		if ProbablyText {
+		if isProbablyText(buf) {
 			return "text", nil
 		}
 		return "unknown", nil
@@ -80,7 +91,7 @@ func isProbablyText(buf []byte) bool {
 		if b == 0 {
 			return false
 		}
-		if (b < 32 && b != 9 && b != 10 && b != 13) || b > 126 {
+		if (b < 32 && b != 9 && b != 10 && b != 13) || (b > 126 && b < 160) {
 			return false
 		}
 	}
