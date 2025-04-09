@@ -5,6 +5,7 @@
 package os_utils
 
 import (
+	"drive-janitor/os_utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 
 // as a user
 func GetDownloadPath() (string, error){
-	osName := WhichOs()
+	osName := os_utils.WhichOs()
 	if (osName == "darwin" || osName == "linux") {
 		home, err := os.UserHomeDir()
 		if err != nil {
