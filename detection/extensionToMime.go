@@ -1,9 +1,15 @@
 package detection
 
+import (
+	"fmt"
+
+	"github.com/h2non/filetype"
+)
+
 // Predefined map of extensions to MIME types for better coverage.
 var SupportedMimeTypes = map[string]bool{
 	"text/markdown": true,
-	"text/csv": 	 true,
+	"text/csv":      true,
 	//"application/json",
 	//"application/x-yaml",
 	//"application/x-yaml",
@@ -48,7 +54,10 @@ var SupportedMimeTypes = map[string]bool{
 // Check if the provided file extension is supported
 func SupportType(mimeType string) (bool, error) {
 	// Check custom MIME types first
-	if mimeTypeIsSupported, exists := SupportedMimeTypes[mimeType]; exists {
+	if filetype.IsMIMESupported(mimeType) {
+		fmt.Println("MIME type is supported:", mimeType)
+		return true, nil
+	} else if mimeTypeIsSupported, exists := SupportedMimeTypes[mimeType]; exists {
 		return mimeTypeIsSupported, nil
 	}
 	return false, nil
