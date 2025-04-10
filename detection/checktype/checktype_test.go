@@ -1,4 +1,4 @@
-package main
+package checktype
 
 import (
 	"path/filepath"
