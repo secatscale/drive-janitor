@@ -1,4 +1,4 @@
-package main
+package checkage
 
 import (
 	"os"
