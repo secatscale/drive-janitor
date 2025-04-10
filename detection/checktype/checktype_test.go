@@ -92,7 +92,7 @@ func TestCheckType(t *testing.T) {
 	// Test loop
 	for _, test := range tests {
 		t.Run(test.testName, func(t *testing.T) {
-			filePath, err := filepath.Abs(filepath.Join("samples", test.fileName))
+			filePath, err := filepath.Abs(filepath.Join("../../samples", test.fileName))
 			if err != nil {
 				t.Errorf("Error getting file path: %s", err)
 			}

@@ -30,7 +30,7 @@ func CheckType(filePath string) (fileType string, err error) {
 	defer fd.Close()
 
 	reader := bufio.NewReader(fd)
-	buf := make([]byte, 24)
+	buf := make([]byte, 8192)
 	n, err := reader.Read(buf)
 	// if file is empty, return empty string
 	if err == io.EOF || n == 0 {
