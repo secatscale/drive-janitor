@@ -1,6 +1,7 @@
 package recursion
 
 import (
+	"drive-janitor/action"
 	"drive-janitor/detection"
 	"fmt"
 	"io/fs"
@@ -41,7 +42,7 @@ func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, e
 	return typeMatch && ageMatch, nil
 }
 
-func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig /* May take dectection and action struct*/) error {
+func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig, actionConfig *action.ActionConfig) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
@@ -74,6 +75,7 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 			if needAction {
 				fmt.Println("Detected file: ", path)
 				// call the action
+				actionConfig.TakeAction(absolutePath)
 			}
 			config.BrowseFiles += 1
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"drive-janitor/action"
 	"drive-janitor/detection"
 	"drive-janitor/recursion"
 	"flag"
@@ -8,7 +9,7 @@ import (
 	"os"
 )
 
-func takeArguments(path *string, depth *int, extension *string, action *string, age *int) {
+func takeArguments(path *string, depth *int, extension *string /* , action *string */, age *int) {
 
 	// Get the current working directory
 	currentPath, err := os.Getwd()
@@ -21,7 +22,7 @@ func takeArguments(path *string, depth *int, extension *string, action *string, 
 	flag.StringVar(path, "path", currentPath, "Path from where we should to check")
 	flag.IntVar(depth, "depth", -1, "Maximum directory depth to search (negative for no limit)")
 	flag.StringVar(extension, "type", "", "File mimeType to filter (required)")
-	flag.StringVar(action, "action", "list", "Action to perform on files (list, count, size, delete)")
+	// flag.StringVar(action, "action", "list", "Action to perform on files (list, count, size, delete)")
 	flag.IntVar(age, "age", -1, "Age of files to filter (in days, negative for no limit)")
 	// flag.StringVar(config, "config", "", "Path to the config.yml file (optional)")
 
@@ -29,7 +30,7 @@ func takeArguments(path *string, depth *int, extension *string, action *string, 
 	flag.Parse()
 }
 
-func validateArguments(path string, depth int, extension string, action string, age int) {
+func validateArguments(path string, depth int, extension string /* action string, */, age int) {
 	// Validate that path is provided
 	if path == "" {
 		fmt.Println("Error: path must be provided with -path flag")
@@ -52,14 +53,14 @@ func main() {
 		path     string
 		depth    int
 		mimeType string
-		action   string
-		age      int
+		// action   string
+		age int
 	)
 
 	// Take arguments from command line
-	takeArguments(&path, &depth, &mimeType, &action, &age)
+	takeArguments(&path, &depth, &mimeType /* , &action */, &age)
 	// Validate arguments
-	validateArguments(path, depth, mimeType, action, age)
+	validateArguments(path, depth, mimeType /* , action */, age)
 
 	recursion := recursion.RecursionConfig{
 		InitialPath:         path,
@@ -84,9 +85,12 @@ func main() {
 		Age:      age,
 	}
 
+	action := action.NewActionConfig()
+	action.Log = true
+
 	fmt.Println("MIME type:", detection.MimeType)
 
-	err = recursion.Recurse(detection)
+	err = recursion.Recurse(detection, action)
 	if err != nil {
 		fmt.Println("Error while browsing files:", err)
 		os.Exit(1)
@@ -96,5 +100,18 @@ func main() {
 	fmt.Printf("Scanning directory: %s\n", path)
 	fmt.Printf("File extension: %s\n", mimeType)
 	fmt.Printf("Max depth: %v\n", depth)
-	fmt.Printf("Action: %s\n", action)
+	// fmt.Printf("Action: %s\n", action)
+
+	err = action.GetLogFileName()
+	if err != nil {
+		fmt.Println("Error getting log file name:", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Log file: %s\n", action.LogConfig.LogRepository)
+
+	err = action.SaveToFile()
+	if err != nil {
+		fmt.Println("Error saving log file:", err)
+		os.Exit(1)
+	}
 }
