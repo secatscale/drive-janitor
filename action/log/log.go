@@ -1,5 +1,7 @@
 package main
 
+// unused code
+
 import (
 	"fmt"
 	"os"
