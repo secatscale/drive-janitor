@@ -1,6 +1,7 @@
 package recursion
 
 import (
+	"drive-janitor/detection"
 	"drive-janitor/testhelper"
 	"os"
 	"path/filepath"
@@ -34,6 +35,10 @@ func	generateTestFS(layers int, filesInfo map[int][]string) {
 // find a way to generate test files easily
 func TestRecursionComplex(t *testing.T) {
 	// Create a complex file structure with multiple files and deeper nesting
+	detection := detection.DetectionConfig{
+		// Add detection criteria here if needed
+		// For example, you can set file types or age criteria
+	}
 	generateTestFS(9, map[int][]string{
 		0: {"root1.txt", "root2.txt", "root3.txt"},
 		1: {"level1_1.txt", "level1_2.txt", "level1_3.txt"},
@@ -58,7 +63,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse()
+			err = config.Recurse(detection)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -77,7 +82,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse()
+			err = config.Recurse(detection)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -96,7 +101,7 @@ func TestRecursionComplex(t *testing.T) {
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse()
+			err = config.Recurse(detection)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -134,7 +139,7 @@ func TestRecursionComplex(t *testing.T) {
 				BrowseFiles: 0,
 			}
 			
-			err = config.Recurse()
+			err = config.Recurse(detection)
 			if err != nil {
 				t.Errorf("Error while browsing files: %v", err)
 			}
