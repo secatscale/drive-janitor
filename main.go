@@ -85,8 +85,15 @@ func main() {
 		Age:      age,
 	}
 
-	action := action.NewActionConfig()
-	action.Log = true
+	action := action.ActionConfig{
+		Delete: false,
+		Log:    true,
+		LogConfig: action.LogConfig{
+			Format:        action.LogFormatText,
+			LogRepository: "logs/",
+			Files:         []string{},
+		},
+	}
 
 	fmt.Println("MIME type:", detection.MimeType)
 

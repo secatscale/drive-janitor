@@ -8,18 +8,6 @@ import (
 	"time"
 )
 
-func NewActionConfig() *ActionConfig {
-	return &ActionConfig{
-		Delete: false,
-		Log:    false,
-		LogConfig: LogConfig{
-			Format:        LogFormatText,
-			LogRepository: "logs/",
-			Files:         []string{},
-		},
-	}
-}
-
 func (action *ActionConfig) TakeAction(filePath string) {
 	if action.Delete {
 		// TODO: Implement delete action
