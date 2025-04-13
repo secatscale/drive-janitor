@@ -97,7 +97,7 @@ func main() {
 
 	fmt.Println("MIME type:", detection.MimeType)
 
-	err = recursion.Recurse(detection, action)
+	err = recursion.Recurse(detection, &action)
 	if err != nil {
 		fmt.Println("Error while browsing files:", err)
 		os.Exit(1)
