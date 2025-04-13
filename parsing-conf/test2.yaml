@@ -24,17 +24,13 @@ recursions:
     path_to_ignore: "${download}/Skyrim/*"
 
 logs:
-	-name: "logging1"
-        activated: true
-        log_repository: /var/.log/
-        # where_to_send: https://127.0.0.1:443
-        crypt: false
-	-name: "logging2"
-        activated: true
-        log_repository: /var/.log/
-        # where_to_send: https://127.0.0.1:443
-        crypt: false
-		
+  - name: "logging1"
+    log_repository: "/var/.log/"
+  # where_to_send: https://127.0.0.1:443
+  - name: "logging2"
+    log_repository: "/var/.log/"
+  # where_to_send: https://127.0.0.1:443
+
 actions:
   - name: "action1"
     delete: true

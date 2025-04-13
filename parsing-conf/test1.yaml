@@ -9,5 +9,5 @@ detections:
 
   - name: "xxxx2"
     mimetype: "application/pdf"
-    filename: 'truc.truc'
+    filename: 'pipi.prout'
     max_age: 10 #years  to be defined? 

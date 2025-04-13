@@ -21,24 +21,22 @@ type ConfigRecursion struct {
 	Path_To_Ignore string
 }
 
-type ConfigLog struct {
-	Name           string
-	Activated      bool
-	Log_Repository string
-	Crypt          bool
-}
-
 type ConfigAction struct {
 	Name   string
 	Delete bool
-	Log    ConfigLog
+	Log    string
 }
 
 type ConfigRule struct {
-	FinalRuleName string
-	Recursion     ConfigRecursion
-	Detection     ConfigDetection
-	Action        ConfigAction
+	Name	 string
+	Action 	 string
+	Detection string
+	Recursion string
+}
+
+type ConfigLog struct {
+	Name           string
+	Log_Repository string
 }
 
 type Config struct {
@@ -48,6 +46,7 @@ type Config struct {
 	Recursions []ConfigRecursion
 	Actions    []ConfigAction
 	Rules      []ConfigRule
+	Logs	   []ConfigLog
 }
 
 func ParseYAMLFile(filePath string) (Config, error) {
@@ -59,7 +58,7 @@ func ParseYAMLFile(filePath string) (Config, error) {
 	var cfg Config
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
-		log.Fatalf("error unmarshaling yaml: %v", err)
+		log.Fatalf("filepath: %v\nerror unmarshaling yaml: %v", filePath, err)
 	}
 	return cfg, nil
 }
