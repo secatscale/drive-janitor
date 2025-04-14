@@ -1,6 +1,7 @@
 package recursion
 
 import (
+	"drive-janitor/action"
 	"drive-janitor/detection"
 	"drive-janitor/testhelper"
 	"os"
@@ -35,10 +36,15 @@ func	generateTestFS(layers int, filesInfo map[int][]string) {
 // find a way to generate test files easily
 func TestRecursionComplex(t *testing.T) {
 	// Create a complex file structure with multiple files and deeper nesting
-	detection := detection.DetectionConfig{
+	detection := detection.Detection{
 		// Add detection criteria here if needed
 		// For example, you can set file types or age criteria
 	}
+	action := action.Action{
+		// Add action criteria here if needed
+		// For example, you can set actions to take on detected files
+	}
+
 	generateTestFS(9, map[int][]string{
 		0: {"root1.txt", "root2.txt", "root3.txt"},
 		1: {"level1_1.txt", "level1_2.txt", "level1_3.txt"},
@@ -56,14 +62,14 @@ func TestRecursionComplex(t *testing.T) {
 		t.Fatalf("Error getting current directory: %v", err)
 	}
 		testhelper.RunOSDependentTest(t, "Test with max depth 3", func(t *testing.T) {
-			config := RecursionConfig{
+			config := Recursion{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 3,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse(detection)
+			err = config.Recurse(detection, &action)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -75,14 +81,14 @@ func TestRecursionComplex(t *testing.T) {
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
 		testhelper.RunOSDependentTest(t, "Test with max depth 5", func(t *testing.T) {
-			config := RecursionConfig{
+			config := Recursion{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 5,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse(detection)
+			err = config.Recurse(detection, &action)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -94,14 +100,14 @@ func TestRecursionComplex(t *testing.T) {
 		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
 
 		testhelper.RunOSDependentTest(t, "Test all depths", func(t *testing.T) {
-			config := RecursionConfig{
+			config := Recursion{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 8,
 				SkipDirectories: []string{},
 				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
-			err = config.Recurse(detection)
+			err = config.Recurse(detection, &action)
 			if (err != nil) {
 				t.Errorf("Error while browsing files: %v", err)
 			}
@@ -131,7 +137,7 @@ func TestRecursionComplex(t *testing.T) {
 				t.Skipf("Couldn't create symlink (might need elevated permissions): %v", err)
 			}
 			
-			config := RecursionConfig{
+			config := Recursion{
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: -1,
 				SkipDirectories: []string{},
@@ -139,7 +145,7 @@ func TestRecursionComplex(t *testing.T) {
 				BrowseFiles: 0,
 			}
 			
-			err = config.Recurse(detection)
+			err = config.Recurse(detection, &action)
 			if err != nil {
 				t.Errorf("Error while browsing files: %v", err)
 			}

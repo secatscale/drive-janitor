@@ -10,14 +10,14 @@ const (
 	LogFormatCSV  LogFormat = "csv"
 )
 
-type LogConfig struct {
+type Log struct {
 	Format        LogFormat
 	LogRepository string
 	Files         []string
 }
 
-type ActionConfig struct {
+type Action struct {
 	Delete    bool
 	Log       bool
-	LogConfig LogConfig
+	LogConfig Log
 }

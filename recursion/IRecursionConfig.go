@@ -1,6 +1,6 @@
 package recursion
 
-type RecursionConfig struct {
+type Recursion struct {
 	InitialPath string
 	MaxDepth int
 	SkipDirectories []string
