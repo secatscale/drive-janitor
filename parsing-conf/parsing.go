@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"drive-janitor/action"
+	"drive-janitor/action" // Ensure this package contains the definition for Action
 	"drive-janitor/detection"
 	"drive-janitor/recursion"
 
@@ -126,6 +126,13 @@ func CheckUniqueNames(cfg Config) error {
 		seen[action.Name] = true
 	}
 
+	for _, log := range cfg.Logs {
+		if seen[log.Name] {
+			return fmt.Errorf("duplicate log name: %s", log.Name)
+		}
+		seen[log.Name] = true
+	}
+
 	for _, rule := range cfg.Rules {
 		if seen[rule.Name] {
 			return fmt.Errorf("duplicate rule name: %s", rule.Name)
@@ -201,50 +208,63 @@ func fillStructs(cfg Config) []Rules {
 	var rules []Rules
 	for _, rulesCfg := range cfg.Rules {
 		localRules := Rules{}
-		for _, recursion := range cfg.Recursions {
-			if rulesCfg.Recursion == recursion.Name {
-				rulesCfg.Recursion = recursion.Name
+		for _, r := range cfg.Recursions {
+			if rulesCfg.Recursion == r.Name {
+				rulesCfg.Recursion = r.Name
 				// New recursion struct
 				localRules.Recursion = recursion.Recursion{
-					Name:             recursion.Name,
-					InitialPath:         recursion.Path,
-					MaxDepth:            recursion.MaxDepth,
+					Name:             r.Name,
+					InitialPath:         r.Path,
+					MaxDepth:            r.MaxDepth,
 					SkipDirectories:     []string{},
 					// Will be deleted later i think
 					BrowseFiles:         0,
 				}
 			}
 		}
-		for _, detection := range cfg.Detections {
+		for _, d := range cfg.Detections {
 			var detectionStruct []detection.Detection
-			if rulesCfg.Detection == detection.Name {
-				rulesCfg.Detection = detection.Name
+			if rulesCfg.Detection == d.Name {
+				rulesCfg.Detection = d.Name
 				// New detection struct
 				detectionStruct = append(detectionStruct, detection.Detection{
-					Name:     detection.Name,
-					MimeType: detection.MimeType,
-					Filename: detection.Filename,
-					Max_Age:  detection.Max_Age,
+					Name:     d.Name,
+					MimeType: d.MimeType,
+					Filename: d.Filename,
+					Age:  d.Max_Age,
 				})
 			}
 		}
-		for _, action := range cfg.Actions {
-			if rulesCfg.Action == action.Name {
+		for _, a := range cfg.Actions {
+			if rulesCfg.Action == a.Name {
 
 				// New action struct
-				localRules.Action = action.Action{
-					Name:   action.Name,
-					Delete: action.Delete,
-//					Log:    action.Log,
-//				LogConfig: action.Log{
-//						Log_Repository: action.Log,
-						// Will be deleted later i think
-//						Files:         []string{},
-	//					Format:        action.LogFormatText,
+				// Faut aller checker le nom de la regle de log et l'ajouter dans notre struct action
+				actionLog, err := getLogRules(cfg.Logs, a.Log)
+				if err != nil {
+					log.Printf("error getting log rules: %v", err)
+					continue
+				}
+					localRules.Action = action.Action{
+					Delete: a.Delete,
+					LogConfig:	actionLog,
+					Log: err != nil,
 					}
 			}
 		}
 		rules = append(rules, localRules)
 	}
 	return rules
+}
+
+func getLogRules(logsRules []ConfigLog, logRuleName string) (action.Log, error) {
+	for _, log := range logsRules {
+		if (log.Name == logRuleName) {
+			return action.Log{
+				Format:			action.LogFormatText,
+				LogRepository: log.Log_Repository,
+			}, nil
+		}
+	}
+	return action.Log{}, fmt.Errorf("log rule not found");
 }

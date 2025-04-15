@@ -66,7 +66,6 @@ func TestRecursionComplex(t *testing.T) {
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 3,
 				SkipDirectories: []string{},
-				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
 			err = config.Recurse(detection, &action)
@@ -85,7 +84,6 @@ func TestRecursionComplex(t *testing.T) {
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 5,
 				SkipDirectories: []string{},
-				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
 			err = config.Recurse(detection, &action)
@@ -104,7 +102,6 @@ func TestRecursionComplex(t *testing.T) {
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: 8,
 				SkipDirectories: []string{},
-				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
 			err = config.Recurse(detection, &action)
@@ -141,7 +138,6 @@ func TestRecursionComplex(t *testing.T) {
 				InitialPath: filepath.Join(path, dir),
 				MaxDepth: -1,
 				SkipDirectories: []string{},
-				PriorityDirectories: []string{},
 				BrowseFiles: 0,
 			}
 			
