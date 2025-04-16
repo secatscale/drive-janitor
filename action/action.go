@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (action *ActionConfig) TakeAction(filePath string) {
+func (action *Action) TakeAction(filePath string) {
 	if action.Delete {
 		// TODO: Implement delete action
 		// os.Remove(filePath)
@@ -18,7 +18,7 @@ func (action *ActionConfig) TakeAction(filePath string) {
 	}
 }
 
-func (action *ActionConfig) GetLogFileName() error {
+func (action *Action) GetLogFileName() error {
 	// Creer le chemin du fichier de log
 	date := time.Now().Format("2006-01-02")
 	var logFileName string
@@ -39,7 +39,7 @@ func (action *ActionConfig) GetLogFileName() error {
 	return nil
 }
 
-func (action *ActionConfig) SaveToFile() error {
+func (action *Action) SaveToFile() error {
 	err := os.MkdirAll(filepath.Dir(action.LogConfig.LogRepository), 0755)
 	if err != nil {
 		return fmt.Errorf("error creating log directory: %w", err)

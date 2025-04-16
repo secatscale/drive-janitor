@@ -62,12 +62,11 @@ func main() {
 	// Validate arguments
 	validateArguments(path, depth, mimeType /* , action */, age)
 
-	recursion := recursion.RecursionConfig{
+	recursion := recursion.Recursion{
 		InitialPath:         path,
 		MaxDepth:            depth,
 		BrowseFiles:         0,
 		SkipDirectories:     []string{},
-		PriorityDirectories: []string{},
 	}
 
 	mimeIsSupported, err := detection.SupportType(mimeType)
@@ -80,15 +79,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	detection := detection.DetectionConfig{
+	detection := detection.Detection{
 		MimeType: mimeType,
 		Age:      age,
 	}
 
-	action := action.ActionConfig{
+	action := action.Action{
 		Delete: false,
 		Log:    true,
-		LogConfig: action.LogConfig{
+		LogConfig: action.Log{
 			Format:        action.LogFormatText,
 			LogRepository: "logs/",
 			Files:         []string{},

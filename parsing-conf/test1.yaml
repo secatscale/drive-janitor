@@ -1,0 +1,13 @@
+name: Test1
+version: 1.2.3
+
+detections:
+  - name: "xxxx"
+    mimetype: "image/png"
+    filename: '*.exe'
+    max_age: 2 
+
+  - name: "xxxx2"
+    mimetype: "application/pdf"
+    filename: 'pipi.prout'
+    max_age: 10 #years  to be defined? 

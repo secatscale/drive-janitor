@@ -1,4 +1,5 @@
-package main
+package os_utils
+
 
 import (
 	"runtime"

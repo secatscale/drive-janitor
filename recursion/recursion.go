@@ -28,7 +28,7 @@ func isAboveMaxDepth(path string, maxDepth int) bool {
 	return getDepth(path) > maxDepth
 }
 
-func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, error) {
+func isDetected(path string, detectionConfig detection.Detection) (bool, error) {
 	// Call la function check type sur le path
 	typeMatch, err := detectionConfig.FileTypeMatching(path)
 	if err != nil {
@@ -42,7 +42,7 @@ func isDetected(path string, detectionConfig detection.DetectionConfig) (bool, e
 	return typeMatch && ageMatch, nil
 }
 
-func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig, actionConfig *action.ActionConfig) error {
+func (config *Recursion) Recurse(detection detection.Detection, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
@@ -68,14 +68,14 @@ func (config *RecursionConfig) Recurse(detectionConfig detection.DetectionConfig
 			// If it is, then we do the action
 
 			absolutePath := filepath.Join(config.InitialPath, path)
-			needAction, err := isDetected(absolutePath, detectionConfig)
+			needAction, err := isDetected(absolutePath, detection)
 			if err != nil {
 				return err
 			}
 			if needAction {
 				fmt.Println("Detected file: ", path)
 				// call the action
-				actionConfig.TakeAction(absolutePath)
+				action.TakeAction(absolutePath)
 			}
 			config.BrowseFiles += 1
 		}
