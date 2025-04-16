@@ -40,6 +40,7 @@ func TestRecursionComplex(t *testing.T) {
 		// Add detection criteria here if needed
 		// For example, you can set file types or age criteria
 	}
+
 	action := action.Action{
 		// Add action criteria here if needed
 		// For example, you can set actions to take on detected files
