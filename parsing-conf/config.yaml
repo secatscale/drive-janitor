@@ -1,0 +1,66 @@
+name: CONFIG1
+version: 1.2.3
+
+detections:
+  - name: "xxxx"
+    mime_type: image/png
+    filename: '*.exe'
+    max_age: 2 
+
+  - name: "xxxx2"
+    mime_type: image/png
+    filename: 'pipi.prout'
+    max_age: 2 #years  to be defined? 
+
+recursions:
+  - name: "recusrion1"
+    path: ${download}/
+    maxDepth: 10
+    path_to_avoid: "${download}/Skyrim/*"
+
+  - name: "recursion2"
+    path: ${download}/
+    maxDepth: 10
+    path_to_avoid: "${download}/Skyrim/*"
+    
+actions:
+  - name: "action1"
+    delete: true
+    log: 
+        activated: true
+        log_repository: /var/.log/
+        # where_to_send: https://127.0.0.1:443
+        crypt: false
+  - name: "action1"
+    delete: true
+    log: 
+        activated: true
+        log_repository: /var/.log/
+        # where_to_send: https://127.0.0.1:443
+        crypt: false
+	
+
+
+- "name qu'on veux pour la regle":
+	- recursion :
+			path: ${download}/
+			maxDepth: 10
+			path_to_avoid: "${download}/Skyrim/*"
+
+	- detection:
+		- OR: (if one those match)
+			- "xxxx"
+			- "xxxx2"
+		- AND: (Must match)
+			- "xxxx3"
+			- NOT:
+				- "xxxx4"
+//		("xxxx" || "xxxx2") && ("xxxx3") && !("xxxx4")
+	- action:
+				delete: true
+				log: 
+					activated: true
+					log_repository: /var/.log/
+					# where_to_send: https://127.0.0.1:443
+				crypt: false
+		

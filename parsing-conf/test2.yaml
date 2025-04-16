@@ -1,0 +1,47 @@
+name: Test2
+version: 1.2.3
+
+detections:
+  - name: "detection1"
+    mimetype: "image/png"
+    filename: '*.exe'
+    max_age: 2 
+
+  - name: "detection2"
+    mimetype: "application/pdf"
+    filename: 'truc.truc'
+    max_age: 10 #years  to be defined? 
+
+recursions:
+  - name: "recursion1"
+    path: ${download}/
+    maxDepth: 10
+    path_to_ignore: "${download}/Skyrim/*"
+
+  - name: "recursion2"
+    path: ${download}/
+    maxDepth: 10
+    path_to_ignore: "${download}/Skyrim/*"
+
+logs:
+  - name: "logging1"
+    log_repository: "/var/.log/"
+  # where_to_send: https://127.0.0.1:443
+  - name: "logging2"
+    log_repository: "/var/.log/"
+  # where_to_send: https://127.0.0.1:443
+
+actions:
+  - name: "action1"
+    delete: true
+    log: "logging1"
+  - name: "action2"
+    delete: false
+    log: "logging2"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2"]
+    recursion: "recursion2"
+
