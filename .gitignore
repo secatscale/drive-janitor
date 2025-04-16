@@ -1,3 +1,4 @@
 .*.s*
 .trunk
 *.swp
+action/log/logs/*
