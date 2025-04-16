@@ -1,10 +1,10 @@
 //go:build !windows
 // +build !windows
 
-// go build !windows
 package os_utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,4 +22,12 @@ func GetDownloadPath() (string, error){
 		return downloads, nil
 	}
 	return "", fmt.Errorf("unsupported OS")
+}
+
+func GetWindowsTrashPath() (string, error) {
+	return "", errors.New("GetWindowsTrashPath is not supported on non-Windows platforms")
+}
+
+func GetCurrentUserSID() (string, error) {
+	return "", errors.New("GetCurrentUserSID is not supported on non-Windows platforms")
 }
