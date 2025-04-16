@@ -67,7 +67,6 @@ func main() {
 		MaxDepth:            depth,
 		BrowseFiles:         0,
 		SkipDirectories:     []string{},
-		PriorityDirectories: []string{},
 	}
 
 	mimeIsSupported, err := detection.SupportType(mimeType)

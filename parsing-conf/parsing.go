@@ -15,51 +15,10 @@ import (
 type Rules struct {
 	Name	 string
 	Action 	 action.Action
-	Detection detection.Detection
+	Detection []detection.Detection
 	Recursion recursion.Recursion
 }
 
-type ConfigDetection struct {
-	Name     string
-	MimeType string
-	Filename string
-	Max_Age  int
-}
-
-type ConfigRecursion struct {
-	Name           string
-	Path           string
-	MaxDepth       int
-	Path_To_Ignore string
-}
-
-type ConfigAction struct {
-	Name   string
-	Delete bool
-	Log    string
-}
-
-type ConfigRule struct {
-	Name	 string
-	Action 	 string
-	Detection string
-	Recursion string
-}
-
-type ConfigLog struct {
-	Name           string
-	Log_Repository string
-}
-
-type Config struct {
-	Name       string
-	Version    string
-	Detections []ConfigDetection
-	Recursions []ConfigRecursion
-	Actions    []ConfigAction
-	Rules      []ConfigRule
-	Logs	   []ConfigLog
-}
 
 func ParseYAMLFile(filePath string) (Config, error) {
 	data, err := os.ReadFile(filePath)
@@ -194,8 +153,13 @@ func CheckRules(cfg Config) error {
 		if rule.Action == "" {
 			return fmt.Errorf("action is required")
 		}
-		if rule.Detection == "" {
-			return fmt.Errorf("detection is required")
+		if len(rule.Detection) == 0 {
+			return fmt.Errorf("at least one detection is required")
+		}
+		for _, detection := range rule.Detection {
+			if detection == "" {
+				return fmt.Errorf("detection is required")
+			}
 		}
 		if rule.Recursion == "" {
 			return fmt.Errorf("recursion is required")
@@ -222,28 +186,28 @@ func fillStructs(cfg Config) []Rules {
 				}
 			}
 		}
-		for _, d := range cfg.Detections {
-			var detectionStruct []detection.Detection
-			if rulesCfg.Detection == d.Name {
-				rulesCfg.Detection = d.Name
-				// New detection struct
-				detectionStruct = append(detectionStruct, detection.Detection{
-					Name:     d.Name,
-					MimeType: d.MimeType,
-					Filename: d.Filename,
-					Age:  d.Max_Age,
-				})
+		var detectionStruct []detection.Detection
+		for _, cfd_detection := range cfg.Detections {
+			for _, d := range cfg.Detections {
+				if cfd_detection.Name == d.Name {
+					// New detection struct
+					detectionStruct = append(detectionStruct, detection.Detection{
+						Name:     d.Name,
+						MimeType: d.MimeType,
+						Filename: d.Filename,
+						Age:  d.Max_Age,
+					})
+				}
 			}
 		}
+		localRules.Detection = detectionStruct
 		for _, a := range cfg.Actions {
 			if rulesCfg.Action == a.Name {
-
 				// New action struct
 				// Faut aller checker le nom de la regle de log et l'ajouter dans notre struct action
 				actionLog, err := getLogRules(cfg.Logs, a.Log)
 				if err != nil {
 					log.Printf("error getting log rules: %v", err)
-					continue
 				}
 					localRules.Action = action.Action{
 					Delete: a.Delete,
