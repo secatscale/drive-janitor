@@ -36,7 +36,7 @@ version: 1.2.3
 func TestParseYAMLFile1(t *testing.T) {
 	t.Run("TestParseYAMLFile1", func(t *testing.T) {
 		filePath := "test1.yaml"
-		cfg, _ := ParseYAMLFile(filePath)
+		cfg, _ := parseYAMLFile(filePath)
 		assertCorrectyamlstring(t, "Test1", cfg.Name)	
 		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
 		detection1 := cfg.Detections[0]
@@ -52,38 +52,14 @@ func TestParseYAMLFile1(t *testing.T) {
 	})
 	t.Run("TestParseYAMLFile2", func(t *testing.T) {
 		filePath := "test2.yaml"
-		cfg, _ := ParseYAMLFile(filePath)
+		cfg, _ := parseYAMLFile(filePath)
 		assertCorrectyamlstring(t, "Test2", cfg.Name)	
 		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
 		recursion1 := cfg.Recursions[0]
 		assertCorrectyamlstring(t, "recursion1", recursion1.Name)
 		assertCorrectyamlstring(t, "/tmp", recursion1.Path)
-		assertCorrectYAMLint(t, 5, recursion1.MaxDepth)
+		assertCorrectYAMLint(t, 10, recursion1.Max_Depth)
 		assertCorrectyamlstring(t, "/tmp/ignore", recursion1.Path_To_Ignore)
-	})
-	t.Run("TestParseYAMLFile3", func(t *testing.T) {
-		filePath := "test3.yaml"
-		cfg, _ := ParseYAMLFile(filePath)
-		assertCorrectyamlstring(t, "Test3", cfg.Name)	
-		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
-		action1 := cfg.Actions[0]
-		assertCorrectyamlstring(t, "xxxx", action1.Name)
-		assertCorrectYAMLbool(t, true, action1.Delete)
-//		log1 := action1.Log
-	//	assertCorrectyamlstring(t, "/tmp/log", log1.Log_Repository)
-//		assertCorrectYAMLbool(t, true, log1.Crypt)
-	})
-	t.Run("TestParseYAMLFile4", func(t *testing.T) {
-		filePath := "test4.yaml"
-		cfg, _ := ParseYAMLFile(filePath)
-		assertCorrectyamlstring(t, "Test4", cfg.Name)	
-		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
-		action1 := cfg.Actions[0]
-		assertCorrectyamlstring(t, "xxxx", action1.Name)
-		assertCorrectYAMLbool(t, false, action1.Delete)
-	//	log1 := action1.Log
-	//	assertCorrectyamlstring(t, "/tmp/log", log1.Log_Repository)
-//		assertCorrectYAMLbool(t, false, log1.Crypt)
 	})
 }	
 

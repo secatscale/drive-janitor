@@ -6,3 +6,5 @@ type Detection struct {
 	Age      int    // Age du fichier en jour
 	Filename string // Regex sur le nom du fichier
 }
+
+type DetectionArray []Detection

@@ -36,7 +36,7 @@ func	generateTestFS(layers int, filesInfo map[int][]string) {
 // find a way to generate test files easily
 func TestRecursionComplex(t *testing.T) {
 	// Create a complex file structure with multiple files and deeper nesting
-	detection := detection.Detection{
+	detection := detection.DetectionArray{
 		// Add detection criteria here if needed
 		// For example, you can set file types or age criteria
 	}
