@@ -4,6 +4,8 @@ package action
 // On va log a la fin de la recursion pour faire 1 seul write
 type LogFormat string
 
+type FileInfo []string
+
 const (
 	LogFormatText LogFormat = "text"
 	LogFormatJSON LogFormat = "json"
@@ -13,7 +15,7 @@ const (
 type Log struct {
 	Format        LogFormat
 	LogRepository string
-	Files         []string
+	FilesInfo     []FileInfo
 }
 
 type Action struct {

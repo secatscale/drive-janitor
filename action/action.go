@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -14,7 +13,8 @@ func (action *Action) TakeAction(filePath string) {
 		// os.Remove(filePath)
 	}
 	if action.Log {
-		action.LogConfig.Files = append(action.LogConfig.Files, filePath)
+		FileInfo := FileInfo{filePath}
+		action.LogConfig.FilesInfo = append(action.LogConfig.FilesInfo, FileInfo)
 	}
 }
 
@@ -47,7 +47,11 @@ func (action *Action) SaveToFile() error {
 	switch action.LogConfig.Format {
 	case LogFormatText:
 		// Write log to text file
-		err := os.WriteFile(action.LogConfig.LogRepository, []byte(strings.Join(action.LogConfig.Files, "\n")), 0644)
+		var logContent string
+		for _, fileInfo := range action.LogConfig.FilesInfo {
+			logContent += fileInfo[0] + "\n"
+		}
+		err := os.WriteFile(action.LogConfig.LogRepository, []byte(logContent), 0644)
 		if err != nil {
 			return fmt.Errorf("error writing log file: %w", err)
 		}

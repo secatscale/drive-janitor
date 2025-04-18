@@ -1,4 +1,5 @@
 .*.s*
 .trunk
 *.swp
-*/logs/*
+*logs*
+.DS_Store
