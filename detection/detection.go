@@ -11,12 +11,13 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	// Call la function check age sur le path
-	ageMatch, err := detection.FileAgeMatching(path)
-	if err != nil {
-		return false, err
-	}
-	return typeMatch && ageMatch, nil
+//	ageMatch, err := detection.FileAgeMatching(path)
+//	if err != nil {
+//		return false, err
+//	}
+	return typeMatch /*&& ageMatch*/, nil
 }
 
 func (detection Detection) FileTypeMatching(path string) (bool, error) {
