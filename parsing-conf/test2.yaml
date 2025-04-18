@@ -14,13 +14,13 @@ detections:
 
 recursions:
   - name: "recursion1"
-    path: ${download}/
-    maxDepth: 10
-    path_to_ignore: "${download}/Skyrim/*"
+    path: /tmp
+    max_depth: 10
+    path_to_ignore: "/tmp/ignore"
 
   - name: "recursion2"
     path: ${download}/
-    maxDepth: 10
+    max_depth: 10
     path_to_ignore: "${download}/Skyrim/*"
 
 logs:
@@ -44,4 +44,3 @@ rules:
     action: "action1"
     detection: ["detection1", "detection2"]
     recursion: "recursion2"
-

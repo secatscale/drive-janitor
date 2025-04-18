@@ -10,7 +10,7 @@ type ConfigDetection struct {
 type ConfigRecursion struct {
 	Name           string
 	Path           string
-	MaxDepth       int
+	Max_Depth       int
 	Path_To_Ignore string
 }
 

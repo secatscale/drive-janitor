@@ -22,7 +22,7 @@ func TestCheckRules(t *testing.T) {
 				},
 			},
 		}
-		err := CheckRules(cfg)
+		err := checkRules(cfg)
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
@@ -38,7 +38,7 @@ func TestCheckRules(t *testing.T) {
 				},
 			},
 		}
-		err := CheckRules(cfg)
+		err := checkRules(cfg)
 		assertError(t, err)
 	})
 		t.Run("TestCheckRulesBad2", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestCheckRules(t *testing.T) {
 				},
 			},
 		}
-		err := CheckRules(cfg)
+		err := checkRules(cfg)
 		assertError(t, err)
 	})
 		t.Run("TestCheckRulesBad3", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestCheckRules(t *testing.T) {
 				},
 			},
 		}
-		err := CheckRules(cfg)
+		err := checkRules(cfg)
 		assertError(t, err)
 	})
 		t.Run("TestCheckRulesBad4", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestCheckRules(t *testing.T) {
 				},
 			},
 		}
-		err := CheckRules(cfg)
+		err := checkRules(cfg)
 		assertError(t, err)
 	})
 }
@@ -184,7 +184,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (!MandatoryFieldsGave(cfg)) {
+		if (!mandatoryFieldsGave(cfg)) {
 			t.Errorf("Expected no error")
 		}
 	})
@@ -202,7 +202,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (MandatoryFieldsGave(cfg)) {
+		if (mandatoryFieldsGave(cfg)) {
 			t.Errorf("Expected an error")
 		}
 	})
@@ -221,7 +221,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (MandatoryFieldsGave(cfg)) {
+		if (mandatoryFieldsGave(cfg)) {
 			t.Errorf("Expected an error")
 		}
 	})
@@ -240,7 +240,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (MandatoryFieldsGave(cfg)) {
+		if (mandatoryFieldsGave(cfg)) {
 			t.Errorf("Expected an error")
 		}
 	})

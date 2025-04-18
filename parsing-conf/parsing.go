@@ -8,19 +8,27 @@ import (
 	"drive-janitor/action" // Ensure this package contains the definition for Action
 	"drive-janitor/detection"
 	"drive-janitor/recursion"
+	"drive-janitor/rules"
 
 	"gopkg.in/yaml.v2"
 )
 
-type Rules struct {
-	Name	 string
-	Action 	 action.Action
-	Detection []detection.Detection
-	Recursion recursion.Recursion
+func ParsingConfigFile(configPath string) (rules.RulesArray, error) {
+	cfg, err := parseYAMLFile(configPath);
+	if (err != nil) {
+		fmt.Printf("Error parsing config file: %v\n", err)
+		return rules.RulesArray{}, err
+	}
+	if (!mandatoryFieldsGave(cfg)) {
+		fmt.Println("Error: missing mandatory fields in config file")
+		return rules.RulesArray{}, fmt.Errorf("missing mandatory fields in config file")
+	}
+	rules := fillStructs(cfg)
+	return rules, nil
 }
 
 
-func ParseYAMLFile(filePath string) (Config, error) {
+func parseYAMLFile(filePath string) (Config, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error reading file: %v", err)
@@ -36,23 +44,23 @@ func ParseYAMLFile(filePath string) (Config, error) {
 
 // Parser pour avoir la config
 // Ensuite on va remplir les autre structs en verifiants les champs depuis le yaml
-func MandatoryFieldsGave(cfg Config) bool {
-	err := CheckRecursion(cfg)
+func mandatoryFieldsGave(cfg Config) bool {
+	err := checkRecursion(cfg)
 	if err != nil {
 		log.Printf("error in recursion: %v", err)
 		return false;
 	}
-	err = CheckDetection(cfg)
+	err = checkDetection(cfg)
 	if err != nil {
 		log.Printf("error in detection: %v", err)
 		return false;
 	}
-	err = CheckAction(cfg)
+	err = checkAction(cfg)
 	if err != nil {
 		log.Printf("error in action: %v", err)
 		return false;
 	}
-	err = CheckRules(cfg)
+	err = checkRules(cfg)
 	if err != nil {
 		log.Printf("error in rules: %v", err)
 		return false;
@@ -102,7 +110,7 @@ func CheckUniqueNames(cfg Config) error {
 	return nil
 }
 
-func CheckRecursion(cfg Config) error {
+func checkRecursion(cfg Config) error {
 	if len(cfg.Recursions) == 0 {
 		return fmt.Errorf("at least one recursion is required")
 	}
@@ -116,21 +124,32 @@ func CheckRecursion(cfg Config) error {
 	}
 	return nil
 }
-func CheckDetection(cfg Config) error {
+
+func checkDetection(cfg Config) error {
 	if len(cfg.Detections) == 0 {
 		return fmt.Errorf("at least one detection is required")
 	}
-	for _, detection := range cfg.Detections {
-		if detection.Name == "" {
+	for _, d := range cfg.Detections {
+		if d.Name == "" {
 			return fmt.Errorf("name is required")
 		}
-		if detection.MimeType == "" && detection.Max_Age == 0 && detection.Filename == "" {
+		if d.MimeType == "" && d.Max_Age == 0 && d.Filename == "" {
 			return fmt.Errorf("at least one of mime type, max age or filename is required")
+		}
+		if (d.MimeType != "") {
+			mimeIsSupported, err := detection.SupportType(d.MimeType)
+			if err != nil {
+				return fmt.Errorf("error getting MIME type: %v", err)
+			}
+			if !mimeIsSupported {
+				return fmt.Errorf("unsupported MIME type: %s", d.MimeType)
+			}
+
 		}
 	}
 	return nil
 }
-func CheckAction(cfg Config) error {
+func checkAction(cfg Config) error {
 	if len(cfg.Actions) == 0 {
 		return fmt.Errorf("at least one action is required")
 	}
@@ -142,7 +161,7 @@ func CheckAction(cfg Config) error {
 	return nil
 }
 
-func CheckRules(cfg Config) error {
+func checkRules(cfg Config) error {
 	if len(cfg.Rules) == 0 {
 		return fmt.Errorf("at least one rule is required")
 	}
@@ -168,10 +187,10 @@ func CheckRules(cfg Config) error {
 	return nil
 }
 
-func fillStructs(cfg Config) []Rules {
-	var rules []Rules
+func fillStructs(cfg Config) rules.RulesArray {
+	var rules_array rules.RulesArray
 	for _, rulesCfg := range cfg.Rules {
-		localRules := Rules{}
+		localRules := rules.Rules{}
 		for _, r := range cfg.Recursions {
 			if rulesCfg.Recursion == r.Name {
 				rulesCfg.Recursion = r.Name
@@ -179,7 +198,7 @@ func fillStructs(cfg Config) []Rules {
 				localRules.Recursion = recursion.Recursion{
 					Name:             r.Name,
 					InitialPath:         r.Path,
-					MaxDepth:            r.MaxDepth,
+					MaxDepth:            r.Max_Depth,
 					SkipDirectories:     []string{},
 					// Will be deleted later i think
 					BrowseFiles:         0,
@@ -209,16 +228,16 @@ func fillStructs(cfg Config) []Rules {
 				if err != nil {
 					log.Printf("error getting log rules: %v", err)
 				}
-					localRules.Action = action.Action{
+				localRules.Action = action.Action{
 					Delete: a.Delete,
 					LogConfig:	actionLog,
 					Log: err != nil,
-					}
+				}
 			}
 		}
-		rules = append(rules, localRules)
+		rules_array = append(rules_array, localRules)
 	}
-	return rules
+	return rules_array
 }
 
 func getLogRules(logsRules []ConfigLog, logRuleName string) (action.Log, error) {
