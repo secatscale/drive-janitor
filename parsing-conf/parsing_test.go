@@ -1,7 +1,6 @@
 package parsing
 
 import (
-	"fmt"
 	"testing"
 
 	"gopkg.in/yaml.v2"
@@ -59,7 +58,6 @@ func TestParseYAMLFile1(t *testing.T) {
 		recursion1 := cfg.Recursions[0]
 		assertCorrectyamlstring(t, "recursion1", recursion1.Name)
 		assertCorrectyamlstring(t, "/tmp", recursion1.Path)
-		fmt.Println(cfg.Recursions)
 		assertCorrectYAMLint(t, 10, recursion1.Max_Depth)
 		assertCorrectyamlstring(t, "/tmp/ignore", recursion1.Path_To_Ignore)
 	})
