@@ -5,6 +5,20 @@ import (
 	"drive-janitor/detection/checktype"
 )
 
+func (detection Detection) IsDetected(path string) (bool, error) {
+	// Call la function check type sur le path
+	typeMatch, err := detection.FileTypeMatching(path)
+	if err != nil {
+		return false, err
+	}
+	// Call la function check age sur le path
+	ageMatch, err := detection.FileAgeMatching(path)
+	if err != nil {
+		return false, err
+	}
+	return typeMatch && ageMatch, nil
+}
+
 func (detection Detection) FileTypeMatching(path string) (bool, error) {
 	// Call la function check type sur le path
 	fileType, err := checktype.CheckType(path)

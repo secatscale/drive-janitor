@@ -63,10 +63,10 @@ func main() {
 	validateArguments(path, depth, mimeType /* , action */, age)
 
 	recursion := recursion.Recursion{
-		InitialPath:         path,
-		MaxDepth:            depth,
-		BrowseFiles:         0,
-		SkipDirectories:     []string{},
+		InitialPath:     path,
+		MaxDepth:        depth,
+		BrowseFiles:     0,
+		SkipDirectories: []string{},
 	}
 
 	mimeIsSupported, err := detection.SupportType(mimeType)
@@ -90,7 +90,7 @@ func main() {
 		LogConfig: action.Log{
 			Format:        action.LogFormatText,
 			LogRepository: "logs/",
-			Files:         []string{},
+			FilesInfo:     []action.FileInfo{},
 		},
 	}
 
