@@ -13,6 +13,7 @@ detections:
 recursions:
   - name: "recursion1"
     path: "/Users/machos/Documents/Project/2600/drive-janitor/samples"
+    path_to_ignore: ["/Users/machos/Documents/Project/2600/drive-janitor/samples/ignore"]
 
 logs:
   - name: "logging1"

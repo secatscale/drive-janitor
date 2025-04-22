@@ -199,7 +199,7 @@ func fillStructs(cfg Config) rules.RulesArray {
 					Name:             r.Name,
 					InitialPath:         r.Path,
 					MaxDepth:            r.Max_Depth,
-					SkipDirectories:     []string{},
+					SkipDirectories:     r.Path_To_Ignore,
 					// Will be deleted later i think
 					BrowseFiles:         0,
 				}
