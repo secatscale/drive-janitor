@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"drive-janitor/action" // Ensure this package contains the definition for Action
 	"drive-janitor/detection"
@@ -187,6 +188,19 @@ func checkRules(cfg Config) error {
 	return nil
 }
 
+func getRelativePath(path string, pathToIgnore []string) []string {
+	var relativePaths []string
+	for _, p := range pathToIgnore {
+		relative, err := filepath.Rel(path, p)
+		if err != nil {
+			log.Printf("error getting relative path: %v", err)
+			continue
+		}
+		relativePaths = append(relativePaths, relative)
+	}
+	return relativePaths
+}
+
 func fillStructs(cfg Config) rules.RulesArray {
 	var rules_array rules.RulesArray
 	for _, rulesCfg := range cfg.Rules {
@@ -199,7 +213,7 @@ func fillStructs(cfg Config) rules.RulesArray {
 					Name:             r.Name,
 					InitialPath:         r.Path,
 					MaxDepth:            r.Max_Depth,
-					SkipDirectories:     r.Path_To_Ignore,
+					SkipDirectories:     getRelativePath(r.Path, r.Path_To_Ignore),
 					// Will be deleted later i think
 					BrowseFiles:         0,
 				}

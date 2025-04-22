@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -28,10 +29,16 @@ func isAboveMaxDepth(path string, maxDepth int) bool {
 	return getDepth(path) > maxDepth
 }
 
+func isInSkipDirectories(path string, skipDirectories []string) bool {
+	fmt.Println("Path: ", path, "Skip: ", skipDirectories)
+	return slices.Contains(skipDirectories, path)
+}
+
 func (config *Recursion) Recurse(detection detection.DetectionArray, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
+	//	fmt.Println("Path: ", path, "Skip: ", config.SkipDirectories, "Start: ", config.InitialPath)
 	//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
 
 		if err != nil {
@@ -46,8 +53,8 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 			return fs.SkipDir
 		}
 
-		//fmt.Println(isAboveMaxDepth(path, config.MaxDepth), config.InitialPath, path, entry.Type().IsDir())
-		if isAboveMaxDepth(path, config.MaxDepth) {
+		fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
+		if isAboveMaxDepth(path, config.MaxDepth)  || isInSkipDirectories(path, config.SkipDirectories) {
 			return fs.SkipDir
 		}
 		if entry.Type().IsRegular() {
