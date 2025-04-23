@@ -13,10 +13,10 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	}
 
 	// Call la function check age sur le path
-//	ageMatch, err := detection.FileAgeMatching(path)
-//	if err != nil {
-//		return false, err
-//	}
+	//	ageMatch, err := detection.FileAgeMatching(path)
+	//	if err != nil {
+	//		return false, err
+	//	}
 	return typeMatch /*&& ageMatch*/, nil
 }
 
@@ -50,4 +50,14 @@ func (detection Detection) FileAgeMatching(path string) (bool, error) {
 	}
 	// Call la function check age sur le path
 	return true, nil
+}
+
+func (detectionArray DetectionArray) AsMatch(filepath string) (bool, error) {
+	for _, detection := range detectionArray {
+		match, _ := detection.IsDetected(filepath)
+		if match {
+			return true, nil
+		}
+	}
+	return false, nil
 }

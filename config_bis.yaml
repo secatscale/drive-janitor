@@ -1,0 +1,30 @@
+name: TestMain
+version: 1.0.0
+
+detections:
+  - name: "detection1"
+    mimetype: "image/png"
+    age: -1
+
+  - name: "detection2"
+    mimetype: "application/pdf"
+    age: -1
+
+recursions:
+  - name: "recursion1"
+    path: "/home/juillardt/Documents/"
+
+logs:
+  - name: "logging1"
+    log_repository: "/home/juillardt/Documents/ecole2600/drive_janitor_SQ/drive-janitor/.log"
+
+actions:
+  - name: "action1"
+    delete: false 
+    log: "logging1"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2"]
+    recursion: "recursion1"

@@ -15,19 +15,18 @@ import (
 )
 
 func ParsingConfigFile(configPath string) (rules.RulesArray, error) {
-	cfg, err := parseYAMLFile(configPath);
-	if (err != nil) {
+	cfg, err := parseYAMLFile(configPath)
+	if err != nil {
 		fmt.Printf("Error parsing config file: %v\n", err)
 		return rules.RulesArray{}, err
 	}
-	if (!mandatoryFieldsGave(cfg)) {
+	if !mandatoryFieldsGave(cfg) {
 		fmt.Println("Error: missing mandatory fields in config file")
 		return rules.RulesArray{}, fmt.Errorf("missing mandatory fields in config file")
 	}
 	rules := fillStructs(cfg)
 	return rules, nil
 }
-
 
 func parseYAMLFile(filePath string) (Config, error) {
 	data, err := os.ReadFile(filePath)
@@ -49,27 +48,32 @@ func mandatoryFieldsGave(cfg Config) bool {
 	err := checkRecursion(cfg)
 	if err != nil {
 		log.Printf("error in recursion: %v", err)
-		return false;
+		return false
 	}
 	err = checkDetection(cfg)
 	if err != nil {
 		log.Printf("error in detection: %v", err)
-		return false;
+		return false
 	}
 	err = checkAction(cfg)
 	if err != nil {
 		log.Printf("error in action: %v", err)
-		return false;
+		return false
 	}
 	err = checkRules(cfg)
 	if err != nil {
 		log.Printf("error in rules: %v", err)
-		return false;
+		return false
+	}
+	err = checkLog(cfg)
+	if err != nil {
+		log.Printf("error in logs: %v", err)
+		return false
 	}
 	return true
 }
 
-//Checker que les noms soit bien differents, pas possible d'avoir le meme nom pour deux actions, deux recursions, etc
+// Checker que les noms soit bien differents, pas possible d'avoir le meme nom pour deux actions, deux recursions, etc
 func CheckUniqueNames(cfg Config) error {
 	seen := make(map[string]bool)
 
@@ -107,7 +111,6 @@ func CheckUniqueNames(cfg Config) error {
 		}
 		seen[rule.Name] = true
 	}
-
 	return nil
 }
 
@@ -121,6 +124,10 @@ func checkRecursion(cfg Config) error {
 		}
 		if recursion.Path == "" {
 			return fmt.Errorf("path is required")
+		}
+		// Check if the path exists
+		if _, err := os.Stat(recursion.Path); os.IsNotExist(err) {
+			return fmt.Errorf("path does not exist: %s", recursion.Path)
 		}
 	}
 	return nil
@@ -137,7 +144,7 @@ func checkDetection(cfg Config) error {
 		if d.MimeType == "" && d.Max_Age == 0 && d.Filename == "" {
 			return fmt.Errorf("at least one of mime type, max age or filename is required")
 		}
-		if (d.MimeType != "") {
+		if d.MimeType != "" {
 			mimeIsSupported, err := detection.SupportType(d.MimeType)
 			if err != nil {
 				return fmt.Errorf("error getting MIME type: %v", err)
@@ -157,6 +164,21 @@ func checkAction(cfg Config) error {
 	for _, action := range cfg.Actions {
 		if action.Name == "" {
 			return fmt.Errorf("name is required")
+		}
+	}
+	return nil
+}
+
+func checkLog(cfg Config) error {
+	if len(cfg.Logs) == 0 {
+		return fmt.Errorf("at least one log is required")
+	}
+	for _, log := range cfg.Logs {
+		if log.Name == "" {
+			return fmt.Errorf("name is required")
+		}
+		if log.Log_Repository == "" {
+			return fmt.Errorf("log repository is required")
 		}
 	}
 	return nil
@@ -215,7 +237,7 @@ func fillStructs(cfg Config) rules.RulesArray {
 					MaxDepth:            r.Max_Depth,
 					SkipDirectories:     getRelativePath(r.Path, r.Path_To_Ignore),
 					// Will be deleted later i think
-					BrowseFiles:         0,
+					BrowseFiles: 0,
 				}
 			}
 		}
@@ -228,7 +250,7 @@ func fillStructs(cfg Config) rules.RulesArray {
 						Name:     d.Name,
 						MimeType: d.MimeType,
 						Filename: d.Filename,
-						Age:  d.Max_Age,
+						Age:      d.Max_Age,
 					})
 				}
 			}
@@ -243,9 +265,9 @@ func fillStructs(cfg Config) rules.RulesArray {
 					log.Printf("error getting log rules: %v", err)
 				}
 				localRules.Action = action.Action{
-					Delete: a.Delete,
-					LogConfig:	actionLog,
-					Log: err != nil,
+					Delete:    a.Delete,
+					LogConfig: actionLog,
+					Log:       err == nil,
 				}
 			}
 		}
@@ -256,12 +278,12 @@ func fillStructs(cfg Config) rules.RulesArray {
 
 func getLogRules(logsRules []ConfigLog, logRuleName string) (action.Log, error) {
 	for _, log := range logsRules {
-		if (log.Name == logRuleName) {
+		if log.Name == logRuleName {
 			return action.Log{
-				Format:			action.LogFormatText,
+				Format:        action.LogFormatText,
 				LogRepository: log.Log_Repository,
 			}, nil
 		}
 	}
-	return action.Log{}, fmt.Errorf("log rule not found");
+	return action.Log{}, fmt.Errorf("log rule not found")
 }

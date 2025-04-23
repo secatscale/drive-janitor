@@ -3,7 +3,6 @@ package recursion
 import (
 	"drive-janitor/action"
 	"drive-janitor/detection"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -38,8 +37,7 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
-	//	fmt.Println("Path: ", path, "Skip: ", config.SkipDirectories, "Start: ", config.InitialPath)
-	//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
+		//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
 
 		if err != nil {
 			if os.IsPermission(err) {
@@ -67,10 +65,9 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 				return err
 			}
 			if needAction {
-				fmt.Println("Detected file: ", path)
 				// call the action
 				action.TakeAction(absolutePath)
-	//		}
+				//		}
 			}
 			config.BrowseFiles += 1
 		}
