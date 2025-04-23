@@ -17,7 +17,6 @@ func (r RulesArray) Loop() {
 			os.Exit(1)
 		}
 		fmt.Printf("Log file: %s\n", rules.Action.LogConfig.LogRepository)
-		fmt.Printf("Log FilesInfo: %s\n", rules.Action.LogConfig.FilesInfo)
 		err = rules.Action.SaveToFile()
 		if err != nil {
 			fmt.Println("Error saving log file:", err)

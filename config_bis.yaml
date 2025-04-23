@@ -4,15 +4,16 @@ version: 1.0.0
 detections:
   - name: "detection1"
     mimetype: "image/png"
-    age: -1
+    max_age: 10
 
   - name: "detection2"
     mimetype: "application/pdf"
-    age: -1
+    max_age: -1
 
 recursions:
   - name: "recursion1"
     path: "/home/juillardt/Documents/"
+    max_depth: 10 
 
 logs:
   - name: "logging1"
