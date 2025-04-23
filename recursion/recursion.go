@@ -3,6 +3,7 @@ package recursion
 import (
 	"drive-janitor/action"
 	"drive-janitor/detection"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -65,9 +66,9 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 				return err
 			}
 			if needAction {
+				fmt.Println("File detected: ", absolutePath)
 				// call the action
 				action.TakeAction(absolutePath)
-				//		}
 			}
 			config.BrowseFiles += 1
 		}
