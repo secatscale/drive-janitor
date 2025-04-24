@@ -10,7 +10,7 @@ type Rules struct {
 	Name	 string
 	Action 	 action.Action
 	Detection detection.DetectionArray
-	Recursion recursion.Recursion
+	Recursion *recursion.Recursion
 }
 
 type RulesArray []Rules;

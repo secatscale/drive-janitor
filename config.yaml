@@ -4,20 +4,22 @@ version: 1.0.0
 detections:
   - name: "detection1"
     mimetype: "image/png"
-    age: -1
 
   - name: "detection2"
     mimetype: "application/pdf"
-    age: -1
+
+  - name: "detection3"
+    mimetype: "video/mp4"
 
 recursions:
   - name: "recursion1"
-    path: "/Users/machos/Documents/Project/2600/drive-janitor/samples"
-    path_to_ignore: ["/Users/machos/Documents/Project/2600/drive-janitor/samples/ignore"]
+    path: "./samples"
+    max_depth: 4
+    path_to_ignore: ["./samples/ignore"]
 
 logs:
   - name: "logging1"
-    log_repository: "/Users/machos/Documents/Project/2600/drive-janitor/var/.log"
+    log_repository: "./var/.log"
 
 actions:
   - name: "action1"
@@ -27,5 +29,5 @@ actions:
 rules:
   - name: "FINALRULE1"
     action: "action1"
-    detection: ["detection1", "detection2"]
+    detection: ["detection1", "detection2", "detection3"]
     recursion: "recursion1"
