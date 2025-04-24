@@ -81,3 +81,7 @@ func assertCorrectYAMLbool(t *testing.T, expected, got bool) {
 	}
 }
 
+// Faut tester les configs + le parsing idealement
+
+// checker si les configs avec des path relatif et absolu
+
