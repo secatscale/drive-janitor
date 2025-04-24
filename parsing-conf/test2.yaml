@@ -16,12 +16,12 @@ recursions:
   - name: "recursion1"
     path: /tmp
     max_depth: 10
-    path_to_ignore: "/tmp/ignore"
+    path_to_ignore: ["/tmp/ignore"]
 
   - name: "recursion2"
     path: ${download}/
     max_depth: 10
-    path_to_ignore: "${download}/Skyrim/*"
+    path_to_ignore: ["${download}/Skyrim/*"]
 
 logs:
   - name: "logging1"

@@ -158,6 +158,23 @@ func TestRecursionComplex(t *testing.T) {
 			os.Remove(linkToDir)
 		}, map[string]bool{"linux": true, "darwin": true, "windows": false}) // Symlinks work differently on Windows
 
+		testhelper.RunOSDependentTest(t, "Test with skip directories", func(t *testing.T) {
+			config := Recursion{
+				InitialPath: filepath.Join(path, dir),
+				MaxDepth: 8,
+				SkipDirectories: []string{"1/2"},
+				BrowseFiles: 0,
+			}
+			err = config.Recurse(detection, &action)
+			if (err != nil) {
+				t.Errorf("Error while browsing files: %v", err)
+			}
+			expectedFiles := 6
+			if (config.BrowseFiles != expectedFiles) {
+				t.Errorf("Expected %d files, got %d", expectedFiles, config.BrowseFiles)
+			}
+		}, map[string]bool{"linux": true, "darwin": true, "windows": true})
+
 	t.Cleanup(func() {
 		defer os.RemoveAll(filepath.Join(path, dir))
 	})

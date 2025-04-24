@@ -59,7 +59,7 @@ func TestParseYAMLFile1(t *testing.T) {
 		assertCorrectyamlstring(t, "recursion1", recursion1.Name)
 		assertCorrectyamlstring(t, "/tmp", recursion1.Path)
 		assertCorrectYAMLint(t, 10, recursion1.Max_Depth)
-		assertCorrectyamlstring(t, "/tmp/ignore", recursion1.Path_To_Ignore)
+		assertCorrectyamlstring(t, "/tmp/ignore", recursion1.Path_To_Ignore[0])
 	})
 }	
 
