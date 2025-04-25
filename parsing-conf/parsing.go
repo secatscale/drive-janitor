@@ -70,6 +70,7 @@ func mandatoryFieldsGave(cfg Config) bool {
 	if err != nil {
 		log.Printf("error in logs: %v", err)
 		return false
+	}
 	err = checkUniqueNames(cfg)
 	if err != nil {
 		log.Printf("error in unique names: %v", err)
@@ -206,21 +207,6 @@ func checkAction(cfg Config) error {
 }
 
 func checkLog(cfg Config) error {
-	for _, log := range cfg.Logs {
-		if log.Name == "" {
-			return fmt.Errorf("name is required")
-		}
-		if log.Log_Repository == "" {
-			return fmt.Errorf("log repository is required")
-		}
-	}
-	return nil
-}
-
-func checkLog(cfg Config) error {
-	if len(cfg.Logs) == 0 {
-		return fmt.Errorf("at least one log is required")
-	}
 	for _, log := range cfg.Logs {
 		if log.Name == "" {
 			return fmt.Errorf("name is required")
