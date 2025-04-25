@@ -70,7 +70,6 @@ func mandatoryFieldsGave(cfg Config) bool {
 	if err != nil {
 		log.Printf("error in logs: %v", err)
 		return false
-	}
 	err = checkUniqueNames(cfg)
 	if err != nil {
 		log.Printf("error in unique names: %v", err)
@@ -218,6 +217,21 @@ func checkLog(cfg Config) error {
 	return nil
 }
 
+func checkLog(cfg Config) error {
+	if len(cfg.Logs) == 0 {
+		return fmt.Errorf("at least one log is required")
+	}
+	for _, log := range cfg.Logs {
+		if log.Name == "" {
+			return fmt.Errorf("name is required")
+		}
+		if log.Log_Repository == "" {
+			return fmt.Errorf("log repository is required")
+		}
+	}
+	return nil
+}
+
 func checkRules(cfg Config) error {
 	if len(cfg.Rules) == 0 {
 		return fmt.Errorf("at least one rule is required")
@@ -268,10 +282,10 @@ func fillStructs(cfg Config) rules.RulesArray {
 			if rulesCfg.Recursion == r.Name {
 				rulesCfg.Recursion = r.Name
 				// New recursion struct
-				localRules.Recursion = recursion.Recursion{
-					Name:            r.Name,
-					InitialPath:     r.Path,
-					MaxDepth:        r.Max_Depth,
+				localRules.Recursion = &recursion.Recursion{
+					Name:             r.Name,
+					InitialPath:         r.Path,
+					MaxDepth:            r.Max_Depth,
 					SkipDirectories:     getRelativePath(r.Path, r.Path_To_Ignore),
 					// Will be deleted later i think
 					BrowseFiles: 0,
