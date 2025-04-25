@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"drive-janitor/action" // Ensure this package contains the definition for Action
 	"drive-janitor/detection"
@@ -66,11 +67,16 @@ func mandatoryFieldsGave(cfg Config) bool {
 		log.Printf("error in rules: %v", err)
 		return false;
 	}
+	err = checkUniqueNames(cfg)
+	if err != nil {
+		log.Printf("error in unique names: %v", err)
+		return false;
+	}
 	return true
 }
 
 //Checker que les noms soit bien differents, pas possible d'avoir le meme nom pour deux actions, deux recursions, etc
-func CheckUniqueNames(cfg Config) error {
+func checkUniqueNames(cfg Config) error {
 	seen := make(map[string]bool)
 
 	for _, recursion := range cfg.Recursions {
@@ -162,6 +168,29 @@ func checkAction(cfg Config) error {
 	return nil
 }
 
+func checkRulesAsValidSubRulesName(cfg Config, rule ConfigRule) error {
+	// Check that action rules name is valid
+	if (slices.IndexFunc(cfg.Actions, func(a ConfigAction) bool {
+		return a.Name == rule.Action
+	}) == -1) {
+		return fmt.Errorf("action %s not found", rule.Action)
+	}
+	// Check all the detection rules name are valid
+	for _, detection := range rule.Detection {
+		if (slices.IndexFunc(cfg.Detections, func(a ConfigDetection) bool {
+			return a.Name == detection
+		}) == -1) {
+		}
+	}
+	// Check if the recursion rule exists
+	if (slices.IndexFunc(cfg.Recursions, func(a ConfigRecursion) bool {
+		return a.Name == rule.Recursion
+	}) == -1) {
+		return fmt.Errorf("action %s not found", rule.Action)
+	}
+	return nil
+}
+
 func checkRules(cfg Config) error {
 	if len(cfg.Rules) == 0 {
 		return fmt.Errorf("at least one rule is required")
@@ -176,13 +205,15 @@ func checkRules(cfg Config) error {
 		if len(rule.Detection) == 0 {
 			return fmt.Errorf("at least one detection is required")
 		}
-		for _, detection := range rule.Detection {
-			if detection == "" {
-				return fmt.Errorf("detection is required")
-			}
+		if (slices.Contains(rule.Detection, "")) {
+			return fmt.Errorf("detection is required")
 		}
 		if rule.Recursion == "" {
 			return fmt.Errorf("recursion is required")
+		}
+		err := checkRulesAsValidSubRulesName(cfg, rule)
+		if err != nil {
+			return fmt.Errorf("error in rule %s: %v", rule.Name, err)
 		}
 	}
 	return nil

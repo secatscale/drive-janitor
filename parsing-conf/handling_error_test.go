@@ -13,6 +13,23 @@ func assertError(t *testing.T, err error) {
 func TestCheckRules(t *testing.T) {
 	t.Run("TestCheckRulesGood", func(t *testing.T) {
 		cfg := Config{
+			Actions: []ConfigAction{
+				{
+					Name:   "action1",
+					Delete: true,
+					Log:    "log1",
+				},
+			},
+			Detections: []ConfigDetection{
+				{
+					Name:     "detection1",
+				},
+			},
+			Recursions: []ConfigRecursion{
+				{
+					Name:        "recursion1",
+				},
+			},
 			Rules: []ConfigRule{
 				{
 					Name:     "rule1",
@@ -100,7 +117,7 @@ func TestUniqueName(t *testing.T) {
 		},
 	}
 
-	err := CheckUniqueNames(cfg)
+	err := checkUniqueNames(cfg)
 	assertError(t, err)
 	})
 	t.Run("TestActionDuplicateName", func(t *testing.T) {
@@ -111,7 +128,7 @@ func TestUniqueName(t *testing.T) {
 			{Name: "action1"}, // Duplicate name
 		},
 	}
-	err := CheckUniqueNames(cfg)
+	err := checkUniqueNames(cfg)
 	assertError(t, err)
 	})
 	t.Run("TestLogDuplicateName", func(t *testing.T) {
@@ -122,7 +139,7 @@ func TestUniqueName(t *testing.T) {
 			{Name: "log1"}, // Duplicate name
 		},
 	}
-	err := CheckUniqueNames(cfg)
+	err := checkUniqueNames(cfg)
 	assertError(t, err)
 	})
 	t.Run("TestRulesDuplicateName", func(t *testing.T) {
@@ -133,7 +150,7 @@ func TestUniqueName(t *testing.T) {
 			{Name: "rule1"}, // Duplicate name
 		},
 	}
-	err := CheckUniqueNames(cfg)
+	err := checkUniqueNames(cfg)
 	assertError(t, err)
 	})
 	t.Run("TestNoDuplicate", func(t *testing.T) {
@@ -159,7 +176,7 @@ func TestUniqueName(t *testing.T) {
 			{Name: "rule2"},
 		},
 	}
-	err := CheckUniqueNames(cfg)
+	err := checkUniqueNames(cfg)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
