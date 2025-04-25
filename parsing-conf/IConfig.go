@@ -41,3 +41,12 @@ type Config struct {
 	Rules      []ConfigRule
 	Logs	   []ConfigLog
 }
+
+type Named interface {
+	GetName() string
+}
+
+func (r ConfigRecursion) GetName() string { return r.Name }
+func (a ConfigAction) GetName() string    { return a.Name }
+func (d ConfigDetection) GetName() string { return d.Name }
+func (l ConfigLog) GetName() string       { return l.Name }
