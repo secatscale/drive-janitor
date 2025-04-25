@@ -1,4 +1,4 @@
-name: TestMain
+name: TestBasicLog
 version: 1.0.0
 
 detections:
@@ -8,14 +8,9 @@ detections:
   - name: "detection2"
     mimetype: "application/pdf"
 
-  - name: "detection3"
-    mimetype: "video/mp4"
-
 recursions:
   - name: "recursion1"
     path: "./samples"
-    max_depth: 4
-    path_to_ignore: ["./samples/ignore"]
 
 logs:
   - name: "logging1"
@@ -29,5 +24,5 @@ actions:
 rules:
   - name: "FINALRULE1"
     action: "action1"
-    detection: ["detection1", "detection2", "detection3"]
+    detection: ["detection1", "detection2"]
     recursion: "recursion1"

@@ -209,7 +209,7 @@ func fillStructs(cfg Config) rules.RulesArray {
 			if rulesCfg.Recursion == r.Name {
 				rulesCfg.Recursion = r.Name
 				// New recursion struct
-				localRules.Recursion = recursion.Recursion{
+				localRules.Recursion = &recursion.Recursion{
 					Name:             r.Name,
 					InitialPath:         r.Path,
 					MaxDepth:            r.Max_Depth,

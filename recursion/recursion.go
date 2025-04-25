@@ -30,7 +30,7 @@ func isAboveMaxDepth(path string, maxDepth int) bool {
 }
 
 func isInSkipDirectories(path string, skipDirectories []string) bool {
-	fmt.Println("Path: ", path, "Skip: ", skipDirectories)
+	//fmt.Println("Path: ", path, "Skip: ", skipDirectories)
 	return slices.Contains(skipDirectories, path)
 }
 
@@ -53,7 +53,7 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 			return fs.SkipDir
 		}
 
-		fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
+		//fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
 		if isAboveMaxDepth(path, config.MaxDepth)  || isInSkipDirectories(path, config.SkipDirectories) {
 			return fs.SkipDir
 		}
