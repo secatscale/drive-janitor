@@ -12,7 +12,7 @@ detections:
 
 recursions:
   - name: "recursion1"
-    path: "/home/juillardt/Documents/"
+    path: "$DOWNLOAD"
     max_depth: 10 
 
 logs:
