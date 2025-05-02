@@ -12,7 +12,7 @@ detections:
 
 recursions:
   - name: "recursion1"
-    path: "$DOWNLOAD"
+    path: "$DoWNLOAD/test"
     max_depth: 10 
 
 logs:
