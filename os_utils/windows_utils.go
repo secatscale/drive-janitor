@@ -8,9 +8,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"golang.org/x/sys/windows"
 )
+
+// WhichOs returns the OS type
+func WhichOs() string {
+	return runtime.GOOS
+}
 
 func GetDownloadPath() (string, error) {
 	osName := WhichOs()
@@ -27,6 +33,14 @@ func GetDownloadPath() (string, error) {
 		return path, nil
 	}
 	return "", fmt.Errorf("unsupported OS")
+}
+
+func WhereTrash(osName string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get user home directory: %v", err)
+	}
+	return GetWindowsTrashPath()
 }
 
 func GetWindowsTrashPath() (string, error) {
@@ -57,4 +71,3 @@ func GetCurrentUserSID() (string, error) {
 	}
 	return sid, nil
 }
-

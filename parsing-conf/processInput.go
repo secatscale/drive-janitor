@@ -12,17 +12,17 @@ import (
 )
 
 func fillRecursion(currentRecursionName string, cfgRecursion ConfigRecursion, currentRules *rules.Rules) {
-		if currentRecursionName == cfgRecursion.Name {
-			// New recursion struct
-			currentRules.Recursion = &recursion.Recursion{
-				Name:             cfgRecursion.Name,
-				InitialPath:         cfgRecursion.Path,
-				MaxDepth:            cfgRecursion.Max_Depth,
-				SkipDirectories:     getRelativePath(cfgRecursion.Path, cfgRecursion.Path_To_Ignore),
-				// Will be deleted later i think
-				BrowseFiles: 0,
-			}
+	if currentRecursionName == cfgRecursion.Name {
+		// New recursion struct
+		currentRules.Recursion = &recursion.Recursion{
+			Name:            cfgRecursion.Name,
+			InitialPath:     cfgRecursion.Path,
+			MaxDepth:        cfgRecursion.Max_Depth,
+			SkipDirectories: getRelativePath(cfgRecursion.Path, cfgRecursion.Path_To_Ignore),
+			// Will be deleted later i think
+			BrowseFiles: 0,
 		}
+	}
 }
 
 func fillDetection(cfgDetectionList []ConfigDetection, currentDetectionListName []string, currentRules *rules.Rules) {
@@ -32,17 +32,17 @@ func fillDetection(cfgDetectionList []ConfigDetection, currentDetectionListName 
 		matchingIndex := slices.IndexFunc(cfgDetectionList, func(detection ConfigDetection) bool {
 			return detection.Name == name
 		})
-		if (matchingIndex != -1) {
-		{
-			detectionArray = append(detectionArray, detection.Detection{
-				Name:     cfgDetectionList[matchingIndex].Name,
-				MimeType: cfgDetectionList[matchingIndex].MimeType,
-				Filename: cfgDetectionList[matchingIndex].Filename,
-				Age:      cfgDetectionList[matchingIndex].Max_Age,
-			})
+		if matchingIndex != -1 {
+			{
+				detectionArray = append(detectionArray, detection.Detection{
+					Name:     cfgDetectionList[matchingIndex].Name,
+					MimeType: cfgDetectionList[matchingIndex].MimeType,
+					Filename: cfgDetectionList[matchingIndex].Filename,
+					Age:      cfgDetectionList[matchingIndex].Max_Age,
+				})
+			}
 		}
-	}
-	currentRules.Detection = detectionArray
+		currentRules.Detection = detectionArray
 	}
 }
 
@@ -90,7 +90,6 @@ func getRelativePath(path string, pathToIgnore []string) []string {
 	}
 	return relativePaths
 }
-
 
 func getLogRules(logsRules []ConfigLog, logRuleName string) (action.Log, error) {
 	for _, log := range logsRules {
