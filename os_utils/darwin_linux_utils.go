@@ -69,3 +69,13 @@ func WhereTrash(osName string) (string, error) {
 		return "", errors.New("OS not supported")
 	}
 }
+
+// GetCurrentUserSID returns the current user's SID on Windows.
+func GetCurrentUserSID() (string, error) {
+	return "", errors.New("GetCurrentUserSID is not supported on this OS")
+}
+
+// GetWindowsTrashPath returns the path to the Windows Recycle Bin.
+func GetWindowsTrashPath() (string, error) {
+	return "", errors.New("GetWindowsTrashPath is not supported on this OS")
+}
