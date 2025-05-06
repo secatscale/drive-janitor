@@ -7,10 +7,10 @@ import (
 )
 
 type Rules struct {
-	Name	 string
-	Action 	 *action.Action
+	Name      string
+	Action    *action.Action
 	Detection detection.DetectionArray
 	Recursion *recursion.Recursion
 }
 
-type RulesArray []Rules;
+type RulesArray []Rules

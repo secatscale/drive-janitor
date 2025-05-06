@@ -10,7 +10,7 @@ type ConfigDetection struct {
 type ConfigRecursion struct {
 	Name           string
 	Path           string
-	Max_Depth       int
+	Max_Depth      int
 	Path_To_Ignore []string
 }
 
@@ -21,8 +21,8 @@ type ConfigAction struct {
 }
 
 type ConfigRule struct {
-	Name	 string
-	Action 	 string
+	Name      string
+	Action    string
 	Detection []string
 	Recursion string
 }
@@ -39,7 +39,7 @@ type Config struct {
 	Recursions []ConfigRecursion
 	Actions    []ConfigAction
 	Rules      []ConfigRule
-	Logs	   []ConfigLog
+	Logs       []ConfigLog
 }
 
 type Named interface {

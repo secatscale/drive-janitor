@@ -19,5 +19,5 @@ func TestGetDownloadPath(t *testing.T) {
 			t.Fatalf("Download path does not exist: %v", path)
 		}
 		t.Logf("Download path: %s", path)
-	},map[string]bool{"windows": true, "darwin": true, "linux": true})
+	}, map[string]bool{"windows": true, "darwin": true, "linux": true})
 }

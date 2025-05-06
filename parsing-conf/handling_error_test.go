@@ -22,18 +22,18 @@ func TestCheckRules(t *testing.T) {
 			},
 			Detections: []ConfigDetection{
 				{
-					Name:     "detection1",
+					Name: "detection1",
 				},
 			},
 			Recursions: []ConfigRecursion{
 				{
-					Name:        "recursion1",
+					Name: "recursion1",
 				},
 			},
 			Rules: []ConfigRule{
 				{
-					Name:     "rule1",
-					Action:   "action1",
+					Name:      "rule1",
+					Action:    "action1",
 					Detection: []string{"detection1"},
 					Recursion: "recursion1",
 				},
@@ -48,8 +48,8 @@ func TestCheckRules(t *testing.T) {
 		cfg := Config{
 			Rules: []ConfigRule{
 				{
-					Name:     "",
-					Action:   "action1",
+					Name:      "",
+					Action:    "action1",
 					Detection: []string{"detection1"},
 					Recursion: "recursion1",
 				},
@@ -58,12 +58,12 @@ func TestCheckRules(t *testing.T) {
 		err := checkRules(cfg)
 		assertError(t, err)
 	})
-		t.Run("TestCheckRulesBad2", func(t *testing.T) {
+	t.Run("TestCheckRulesBad2", func(t *testing.T) {
 		cfg := Config{
 			Rules: []ConfigRule{
 				{
-					Name:     "rule1",
-					Action:   "",
+					Name:      "rule1",
+					Action:    "",
 					Detection: []string{"detection1"},
 					Recursion: "recursion1",
 				},
@@ -72,12 +72,12 @@ func TestCheckRules(t *testing.T) {
 		err := checkRules(cfg)
 		assertError(t, err)
 	})
-		t.Run("TestCheckRulesBad3", func(t *testing.T) {
+	t.Run("TestCheckRulesBad3", func(t *testing.T) {
 		cfg := Config{
 			Rules: []ConfigRule{
 				{
-					Name:     "rule1",
-					Action:   "action1",
+					Name:      "rule1",
+					Action:    "action1",
 					Detection: []string{},
 					Recursion: "recursion1",
 				},
@@ -86,12 +86,12 @@ func TestCheckRules(t *testing.T) {
 		err := checkRules(cfg)
 		assertError(t, err)
 	})
-		t.Run("TestCheckRulesBad4", func(t *testing.T) {
+	t.Run("TestCheckRulesBad4", func(t *testing.T) {
 		cfg := Config{
 			Rules: []ConfigRule{
 				{
-					Name:     "rule1",
-					Action:   "action1",
+					Name:      "rule1",
+					Action:    "action1",
 					Detection: []string{"detection1"},
 					Recursion: "",
 				},
@@ -104,82 +104,82 @@ func TestCheckRules(t *testing.T) {
 
 func TestUniqueName(t *testing.T) {
 	t.Run("TestDoubleError", func(t *testing.T) {
-	cfg := Config{
-		Detections: []ConfigDetection{
-			{Name: "detection1"},
-			{Name: "detection2"},
-			{Name: "detection1"}, // Duplicate name
-		},
-		Recursions: []ConfigRecursion{
-			{Name: "recursion1"},
-			{Name: "recursion2"},
-			{Name: "recursion1"}, // Duplicate name
-		},
-	}
+		cfg := Config{
+			Detections: []ConfigDetection{
+				{Name: "detection1"},
+				{Name: "detection2"},
+				{Name: "detection1"}, // Duplicate name
+			},
+			Recursions: []ConfigRecursion{
+				{Name: "recursion1"},
+				{Name: "recursion2"},
+				{Name: "recursion1"}, // Duplicate name
+			},
+		}
 
-	err := checkUniqueNames(cfg)
-	assertError(t, err)
+		err := checkUniqueNames(cfg)
+		assertError(t, err)
 	})
 	t.Run("TestActionDuplicateName", func(t *testing.T) {
-	cfg := Config{
-		Actions: []ConfigAction{
-			{Name: "action1"},
-			{Name: "action2"},
-			{Name: "action1"}, // Duplicate name
-		},
-	}
-	err := checkUniqueNames(cfg)
-	assertError(t, err)
+		cfg := Config{
+			Actions: []ConfigAction{
+				{Name: "action1"},
+				{Name: "action2"},
+				{Name: "action1"}, // Duplicate name
+			},
+		}
+		err := checkUniqueNames(cfg)
+		assertError(t, err)
 	})
 	t.Run("TestLogDuplicateName", func(t *testing.T) {
-	cfg := Config{
-		Logs: []ConfigLog{
-			{Name: "log1"},
-			{Name: "log2"},
-			{Name: "log1"}, // Duplicate name
-		},
-	}
-	err := checkUniqueNames(cfg)
-	assertError(t, err)
+		cfg := Config{
+			Logs: []ConfigLog{
+				{Name: "log1"},
+				{Name: "log2"},
+				{Name: "log1"}, // Duplicate name
+			},
+		}
+		err := checkUniqueNames(cfg)
+		assertError(t, err)
 	})
 	t.Run("TestRulesDuplicateName", func(t *testing.T) {
-	cfg := Config{
-		Rules: []ConfigRule{
-			{Name: "rule1"},
-			{Name: "rule2"},
-			{Name: "rule1"}, // Duplicate name
-		},
-	}
-	err := checkUniqueNames(cfg)
-	assertError(t, err)
+		cfg := Config{
+			Rules: []ConfigRule{
+				{Name: "rule1"},
+				{Name: "rule2"},
+				{Name: "rule1"}, // Duplicate name
+			},
+		}
+		err := checkUniqueNames(cfg)
+		assertError(t, err)
 	})
 	t.Run("TestNoDuplicate", func(t *testing.T) {
-	cfg := Config{
-		Detections: []ConfigDetection{
-			{Name: "detection1"},
-			{Name: "detection2"},
-		},
-		Recursions: []ConfigRecursion{
-			{Name: "recursion1"},
-			{Name: "recursion2"},
-		},
-		Actions: []ConfigAction{
-			{Name: "action1"},
-			{Name: "action2"},
-		},
-		Logs: []ConfigLog{
-			{Name: "log1"},
-			{Name: "log2"},
-		},
-		Rules: []ConfigRule{
-			{Name: "rule1"},
-			{Name: "rule2"},
-		},
-	}
-	err := checkUniqueNames(cfg)
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
+		cfg := Config{
+			Detections: []ConfigDetection{
+				{Name: "detection1"},
+				{Name: "detection2"},
+			},
+			Recursions: []ConfigRecursion{
+				{Name: "recursion1"},
+				{Name: "recursion2"},
+			},
+			Actions: []ConfigAction{
+				{Name: "action1"},
+				{Name: "action2"},
+			},
+			Logs: []ConfigLog{
+				{Name: "log1"},
+				{Name: "log2"},
+			},
+			Rules: []ConfigRule{
+				{Name: "rule1"},
+				{Name: "rule2"},
+			},
+		}
+		err := checkUniqueNames(cfg)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
 	})
 }
 
@@ -201,7 +201,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (!mandatoryFieldsGave(cfg)) {
+		if !mandatoryFieldsGave(cfg) {
 			t.Errorf("Expected no error")
 		}
 	})
@@ -213,13 +213,12 @@ func TestMandatoryFields(t *testing.T) {
 			Recursions: []ConfigRecursion{
 				{Name: "recursion1", Path: "/tmp"},
 			},
-			Actions: []ConfigAction{
-			},
+			Actions: []ConfigAction{},
 			Rules: []ConfigRule{
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (mandatoryFieldsGave(cfg)) {
+		if mandatoryFieldsGave(cfg) {
 			t.Errorf("Expected an error")
 		}
 	})
@@ -238,7 +237,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (mandatoryFieldsGave(cfg)) {
+		if mandatoryFieldsGave(cfg) {
 			t.Errorf("Expected an error")
 		}
 	})
@@ -257,7 +256,7 @@ func TestMandatoryFields(t *testing.T) {
 				{Name: "rule1", Action: "action1", Detection: []string{"detection1"}, Recursion: "recursion1"},
 			},
 		}
-		if (mandatoryFieldsGave(cfg)) {
+		if mandatoryFieldsGave(cfg) {
 			t.Errorf("Expected an error")
 		}
 	})
@@ -312,7 +311,7 @@ func TestFillingStruct(t *testing.T) {
 		assertCorrectyamlstring(t, "detection1", rules[0].Detection[0].Name)
 		assertCorrectyamlstring(t, "image/png", rules[0].Detection[0].MimeType)
 		assertCorrectyamlstring(t, "recursion1", rules[0].Recursion.Name)
-		if (!rules[0].Action.Delete) {
+		if !rules[0].Action.Delete {
 			t.Errorf("Expected true, got %v", rules[0].Action.Delete)
 		}
 
@@ -330,7 +329,7 @@ func TestFillingStruct(t *testing.T) {
 		assertCorrectyamlstring(t, "recursion2", rules[0].Recursion.Name)
 		assertCorrectyamlstring(t, "/tmp", rules[0].Recursion.InitialPath)
 		assertCorrectyamlstring(t, "/tmp/log", rules[0].Action.LogConfig.LogRepository)
-		if (rules[0].Action.Delete) {
+		if rules[0].Action.Delete {
 			t.Errorf("Expected false, got %v", rules[0].Action.Delete)
 		}
 	})

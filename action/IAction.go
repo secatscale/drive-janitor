@@ -4,7 +4,6 @@ package action
 // On va log a la fin de la recursion pour faire 1 seul write
 type LogFormat string
 
-
 type FileInfo map[string]string
 
 const (

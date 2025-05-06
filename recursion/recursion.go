@@ -39,8 +39,8 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
 		//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
-	//	fmt.Println("Path: ", path, "Skip: ", config.SkipDirectories, "Start: ", config.InitialPath)
-	//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
+		//	fmt.Println("Path: ", path, "Skip: ", config.SkipDirectories, "Start: ", config.InitialPath)
+		//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
 
 		if err != nil {
 			if os.IsPermission(err) {
@@ -55,7 +55,7 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 		}
 
 		//fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
-		if isAboveMaxDepth(path, config.MaxDepth)  || isInSkipDirectories(path, config.SkipDirectories) {
+		if isAboveMaxDepth(path, config.MaxDepth) || isInSkipDirectories(path, config.SkipDirectories) {
 			return fs.SkipDir
 		}
 		if entry.Type().IsRegular() {

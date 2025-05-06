@@ -27,7 +27,7 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 }
 
 func (detection Detection) FileTypeMatching(path string) (bool, error) {
-	if (detection.MimeType == "") {
+	if detection.MimeType == "" {
 		return true, nil
 	}
 	// Call la function check type sur le path
@@ -61,8 +61,8 @@ func (detection Detection) FileAgeMatching(path string) (bool, error) {
 	return true, nil
 }
 
-func (detection Detection) FileNameMatching(path string) (bool ,error) {
-	if (detection.Filename == "") {
+func (detection Detection) FileNameMatching(path string) (bool, error) {
+	if detection.Filename == "" {
 		return true, nil
 	}
 	filename := filepath.Base(path)
