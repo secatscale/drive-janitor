@@ -54,7 +54,7 @@ func fillAction(cfgActionList []ConfigAction, currentActionName string, currentR
 			if !asLog {
 				log.Printf("error getting log rules: %v", err)
 			}
-			currentRules.Action = action.Action{
+			currentRules.Action = &action.Action{
 				Delete:    a.Delete,
 				LogConfig: actionLog,
 				Log:       asLog,

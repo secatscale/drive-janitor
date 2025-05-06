@@ -8,7 +8,7 @@ import (
 
 type Rules struct {
 	Name	 string
-	Action 	 action.Action
+	Action 	 *action.Action
 	Detection detection.DetectionArray
 	Recursion *recursion.Recursion
 }

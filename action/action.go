@@ -12,8 +12,10 @@ func (action *Action) TakeAction(filePath string) {
 		// TODO: Implement delete action
 		// os.Remove(filePath)
 	}
+
+	// Maybe une fonction pour ca ? :below
 	if action.Log {
-		FileInfo := FileInfo{filePath}
+		FileInfo := FileInfo{"path": filePath}
 		action.LogConfig.FilesInfo = append(action.LogConfig.FilesInfo, FileInfo)
 	}
 }
@@ -49,7 +51,7 @@ func (action *Action) SaveToFile() error {
 		// Write log to text file
 		var logContent string
 		for _, fileInfo := range action.LogConfig.FilesInfo {
-			logContent += fileInfo[0] + "\n"
+			logContent += fileInfo["path"] + "\n"
 		}
 		err := os.WriteFile(action.LogConfig.LogRepository, []byte(logContent), 0644)
 		if err != nil {

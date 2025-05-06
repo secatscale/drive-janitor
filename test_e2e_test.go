@@ -5,6 +5,7 @@ import (
 	"drive-janitor/rules"
 	"fmt"
 	"os"
+	"slices"
 	"testing"
 )
 
@@ -60,6 +61,39 @@ func TestEndToEnd(t *testing.T) {
 		}
 	})
 
+	t.Run("End to end recursion, checking regex filename", func(t *testing.T) {
+		pwd, err := os.Getwd()
+		if (err != nil) {
+			t.Fatalf("Error getting current working directory: %v", err)
+		}
+		configPath := pwd + "/config_test/config_regex_match.yml"
+		rules, err := parsing.ParsingConfigFile(configPath)
+		if err != nil {
+			t.Fatalf("Error parsing config file: %v", err)
+		}
+		// Should not happen
+		if len(rules) == 0 {
+			t.Fatalf("Parsed rules are empty")
+		}
+		rules.Loop()
+		for i, rule := range rules {
+			if (i == 0) {
+				for _, logInfo := range rule.Action.LogConfig.FilesInfo {
+					assertMatchTestFilname(logInfo, t)
+				}
+			}
+			fmt.Println("total", rule.Recursion.BrowseFiles)
+		}
+	})
+}
+
+// Arbritary checking file matching in samples2
+// This function only apply to the test : `End to end recursion, checking regex filename`
+func assertMatchTestFilname(fileInfo map[string]string, t *testing.T) {
+	allowed := []string{"samples2/Elephant.txt","samples2/Kangourou.wav", "samples2/KangourouElephant.voc", "samples2/elephant.webp" ,"samples2/elkanelkangourou.tiff","samples2/kangourou.ra"}
+	if (!slices.Contains(allowed, fileInfo["path"])) {
+		t.Fatalf("Match a file we should not match: %v", fileInfo["path"])	
+	}
 }
 
 func assertLogFileExist(logFile string, t *testing.T) bool {

@@ -1,0 +1,29 @@
+name: TestRecursionSkipDirectory
+version: 1.0.0
+
+detections:
+    - name: "detection1"
+      filename: "(?i).*elephant.*"
+
+    - name: "detection2"
+      filename: "(?i).*kangourou.*"
+
+recursions:
+  - name: "recursion1"
+    path: "./samples2"
+
+logs:
+  - name: "logging1"
+    log_repository: "./var/.log.oui"
+
+
+actions:
+  - name: "action1"
+    delete: true
+    log: "logging1"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2"]
+    recursion: "recursion1"
