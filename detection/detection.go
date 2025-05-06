@@ -3,6 +3,8 @@ package detection
 import (
 	"drive-janitor/detection/checkage"
 	"drive-janitor/detection/checktype"
+	"path/filepath"
+	"regexp"
 )
 
 func (detection Detection) IsDetected(path string) (bool, error) {
@@ -17,10 +19,17 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return typeMatch && ageMatch, nil
+	filenameMatch, err := detection.FileNameMatching(path)
+	if err != nil {
+		return false, err
+	}
+	return typeMatch && ageMatch && filenameMatch, nil
 }
 
 func (detection Detection) FileTypeMatching(path string) (bool, error) {
+	if (detection.MimeType == "") {
+		return true, nil
+	}
 	// Call la function check type sur le path
 	fileType, err := checktype.CheckType(path)
 	if err != nil {
@@ -52,12 +61,12 @@ func (detection Detection) FileAgeMatching(path string) (bool, error) {
 	return true, nil
 }
 
-func (detectionArray DetectionArray) AsMatch(filepath string) (bool, error) {
-	for _, detection := range detectionArray {
-		match, _ := detection.IsDetected(filepath)
-		if match {
-			return true, nil
-		}
+func (detection Detection) FileNameMatching(path string) (bool ,error) {
+	if (detection.Filename == "") {
+		return true, nil
 	}
-	return false, nil
+	filename := filepath.Base(path)
+	match, err := regexp.MatchString(detection.Filename, filename)
+
+	return match, err
 }

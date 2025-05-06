@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func saveLog(action action.Action) {
+func saveLog(action *action.Action) {
 	err := action.GetLogFileName()
 	if err != nil {
 		fmt.Println("Error getting log file name:", err)
@@ -25,7 +25,7 @@ func saveLog(action action.Action) {
 
 func (r RulesArray) Loop() {
 	for _, rules := range r {
-		err := rules.Recursion.Recurse(rules.Detection, &rules.Action)
+		err := rules.Recursion.Recurse(rules.Detection, rules.Action)
 		if err != nil {
 			panic(err)
 		}
