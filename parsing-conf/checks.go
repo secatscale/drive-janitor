@@ -59,17 +59,20 @@ func checkUniqueNames(cfg Config) error {
 
 func checkRulesAsValidSubRulesName(cfg Config, rule ConfigRule) error {
 	// Check that action rules name is valid
-	err := checkRuleExists(cfg.Actions, rule.Action); if err != nil {
+	err := checkRuleExists(cfg.Actions, rule.Action)
+	if err != nil {
 		return fmt.Errorf("action %s not found", rule.Action)
 	}
 	// Check all the detection rules name are valid
 	for _, detection := range rule.Detection {
-		err := checkRuleExists(cfg.Detections, detection); if err != nil {
+		err := checkRuleExists(cfg.Detections, detection)
+		if err != nil {
 			return fmt.Errorf("detection %s not found in rule %s", detection, rule.Name)
 		}
 	}
 	// Check if the recursion rule exists
-	err = checkRuleExists(cfg.Recursions, rule.Recursion); if err != nil {
+	err = checkRuleExists(cfg.Recursions, rule.Recursion)
+	if err != nil {
 		return fmt.Errorf("recursion %s not found in rule %s", rule.Recursion, rule.Name)
 	}
 	return nil
@@ -161,19 +164,22 @@ func checkRules(cfg Config) error {
 		return fmt.Errorf("at least one rule is required")
 	}
 	for _, rule := range cfg.Rules {
-		err := checkNotEmpty(rule.Name); if err != nil {
+		err := checkNotEmpty(rule.Name)
+		if err != nil {
 			return fmt.Errorf("name is required")
 		}
-		err = checkNotEmpty(rule.Action); if err != nil {
+		err = checkNotEmpty(rule.Action)
+		if err != nil {
 			return fmt.Errorf("action is required")
 		}
 		if len(rule.Detection) == 0 {
 			return fmt.Errorf("at least one detection is required")
 		}
-		if (slices.Contains(rule.Detection, "")) {
+		if slices.Contains(rule.Detection, "") {
 			return fmt.Errorf("detection is required")
 		}
-		err = checkNotEmpty(rule.Recursion); if err != nil {
+		err = checkNotEmpty(rule.Recursion)
+		if err != nil {
 			return fmt.Errorf("recursion is required")
 		}
 		err = checkRulesAsValidSubRulesName(cfg, rule)

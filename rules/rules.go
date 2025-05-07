@@ -30,7 +30,7 @@ func (r RulesArray) Loop() {
 			panic(err)
 		}
 		// Here also not mandatory
-		if (rules.Action.Log) {
+		if rules.Action.Log {
 			saveLog(rules.Action)
 		}
 	}

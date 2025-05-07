@@ -1,5 +1,7 @@
+.PHONY: test format
 
 test:
-	go test ./...
+	go test ./... -v
 
-.PHONY: test
+format: 
+	gofmt -w .

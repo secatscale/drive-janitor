@@ -20,7 +20,6 @@ version: 1.2.3
 	// Create an instance of the Config struct
 	var config Config
 
-	
 	// Unmarshal the YAML data into the struct
 	err := yaml.Unmarshal(yamlData, &config)
 	if err != nil {
@@ -29,7 +28,7 @@ version: 1.2.3
 
 	// Check if the strings are correctly parsed
 	assertCorrectyamlstring(t, "TestApp", config.Name)
-	
+
 	assertCorrectyamlstring(t, "1.2.3", config.Version)
 }
 
@@ -37,7 +36,7 @@ func TestParseYAMLFile1(t *testing.T) {
 	t.Run("TestParseYAMLFile1", func(t *testing.T) {
 		filePath := "test1.yaml"
 		cfg, _ := parseYAMLFile(filePath)
-		assertCorrectyamlstring(t, "Test1", cfg.Name)	
+		assertCorrectyamlstring(t, "Test1", cfg.Name)
 		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
 		detection1 := cfg.Detections[0]
 		assertCorrectyamlstring(t, "xxxx", detection1.Name)
@@ -53,7 +52,7 @@ func TestParseYAMLFile1(t *testing.T) {
 	t.Run("TestParseYAMLFile2", func(t *testing.T) {
 		filePath := "test2.yaml"
 		cfg, _ := parseYAMLFile(filePath)
-		assertCorrectyamlstring(t, "Test2", cfg.Name)	
+		assertCorrectyamlstring(t, "Test2", cfg.Name)
 		assertCorrectyamlstring(t, "1.2.3", cfg.Version)
 		recursion1 := cfg.Recursions[0]
 		assertCorrectyamlstring(t, "recursion1", recursion1.Name)
@@ -61,7 +60,7 @@ func TestParseYAMLFile1(t *testing.T) {
 		assertCorrectYAMLint(t, 10, recursion1.Max_Depth)
 		assertCorrectyamlstring(t, "/tmp/ignore", recursion1.Path_To_Ignore[0])
 	})
-}	
+}
 
 func assertCorrectYAMLint(t *testing.T, expected, got int) {
 	if expected != got {
@@ -84,4 +83,3 @@ func assertCorrectYAMLbool(t *testing.T, expected, got bool) {
 // Faut tester les configs + le parsing idealement
 
 // checker si les configs avec des path relatif et absolu
-

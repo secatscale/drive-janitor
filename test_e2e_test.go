@@ -15,7 +15,7 @@ func TestEndToEnd(t *testing.T) {
 
 	t.Run("Test basic config log", func(t *testing.T) {
 		pwd, err := os.Getwd()
-		if (err != nil) {
+		if err != nil {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_basic.yml"
@@ -30,13 +30,13 @@ func TestEndToEnd(t *testing.T) {
 
 		rules.Loop()
 		// Check the log file and what it contains
-		// For the moment just the file 
+		// For the moment just the file
 		checkLogs(rules, t)
 	})
 
 	t.Run("End to end recursion, with skip directories", func(t *testing.T) {
 		pwd, err := os.Getwd()
-		if (err != nil) {
+		if err != nil {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_recursion.yml"
@@ -55,15 +55,15 @@ func TestEndToEnd(t *testing.T) {
 			// need to to count the number of files in the directory
 			// and check if the number of files is correct
 			// by subing the number of files in the skip directories
-			if (rule.Recursion.BrowseFiles != 57) {
-				t.Fatalf("Number of files browsed is not correct: %d\n We probaly didn't skipdir, or we changed samples repo", rule.Recursion.BrowseFiles);
+			if rule.Recursion.BrowseFiles != 57 {
+				t.Fatalf("Number of files browsed is not correct: %d\n We probaly didn't skipdir, or we changed samples repo", rule.Recursion.BrowseFiles)
 			}
 		}
 	})
 
 	t.Run("End to end recursion, checking regex filename", func(t *testing.T) {
 		pwd, err := os.Getwd()
-		if (err != nil) {
+		if err != nil {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_regex_match.yml"
@@ -77,7 +77,7 @@ func TestEndToEnd(t *testing.T) {
 		}
 		rules.Loop()
 		for i, rule := range rules {
-			if (i == 0) {
+			if i == 0 {
 				for _, logInfo := range rule.Action.LogConfig.FilesInfo {
 					assertMatchTestFilname(logInfo, t)
 				}
@@ -90,14 +90,14 @@ func TestEndToEnd(t *testing.T) {
 // Arbritary checking file matching in samples2
 // This function only apply to the test : `End to end recursion, checking regex filename`
 func assertMatchTestFilname(fileInfo map[string]string, t *testing.T) {
-	allowed := []string{"samples2/Elephant.txt","samples2/Kangourou.wav", "samples2/KangourouElephant.voc", "samples2/elephant.webp" ,"samples2/elkanelkangourou.tiff","samples2/kangourou.ra"}
-	if (!slices.Contains(allowed, fileInfo["path"])) {
-		t.Fatalf("Match a file we should not match: %v", fileInfo["path"])	
+	allowed := []string{"samples2/Elephant.txt", "samples2/Kangourou.wav", "samples2/KangourouElephant.voc", "samples2/elephant.webp", "samples2/elkanelkangourou.tiff", "samples2/kangourou.ra"}
+	if !slices.Contains(allowed, fileInfo["path"]) {
+		t.Fatalf("Match a file we should not match: %v", fileInfo["path"])
 	}
 }
 
 func assertLogFileExist(logFile string, t *testing.T) bool {
-	if (logFile == "") {
+	if logFile == "" {
 		t.Fatalf("Log file path is empty")
 		return false
 	}
@@ -111,7 +111,7 @@ func assertLogFileExist(logFile string, t *testing.T) bool {
 
 func checkLogs(rules rules.RulesArray, t *testing.T) {
 	for _, rule := range rules {
-		if rule.Action.Log && assertLogFileExist(rule.Action.LogConfig.LogRepository, t) { 
+		if rule.Action.Log && assertLogFileExist(rule.Action.LogConfig.LogRepository, t) {
 			// Check the content, just openeing for the moment
 			logFile, err := os.Open(rule.Action.LogConfig.LogRepository)
 			if err != nil {
