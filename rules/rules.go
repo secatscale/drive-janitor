@@ -26,6 +26,7 @@ func saveLog(action *action.Action) {
 
 func (r RulesArray) Loop() {
 	for _, rules := range r {
+		// Running each rules in a separate goroutine
 		go func(rules Rules) {
 			defer func() {
 				if r := recover(); r != nil {
