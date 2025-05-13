@@ -17,5 +17,5 @@ actions:
 rules:
   - name: "FINALRULE1"
     action: "action1"
-    detection: ["detection1"]
+    detection: ["detection1", "detection2"]
     recursion: "recursion1"
