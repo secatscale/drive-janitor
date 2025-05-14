@@ -34,8 +34,7 @@ func ParsingConfigFile(configPath string) (rules.RulesInfo, error) {
 	var rulesInfo = rules.RulesInfo{
 		RulesArray: rulesArray,
 		WaitGroup:  &sync.WaitGroup{},
-		InfoLoop: make(chan recursion.Recursion),
-
+		InfoLoop:   make(chan recursion.Recursion),
 	}
 	return rulesInfo, nil
 }

@@ -19,7 +19,7 @@ type RulesArray []Rules
 type RulesInfo struct {
 	RulesArray RulesArray
 	// Used to wait all goroutine after the exectuion
-	WaitGroup  *sync.WaitGroup
+	WaitGroup *sync.WaitGroup
 	// Channel to pass data out of the go routine
-	InfoLoop   chan recursion.Recursion
+	InfoLoop chan recursion.Recursion
 }
