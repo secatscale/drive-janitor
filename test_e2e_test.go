@@ -19,7 +19,8 @@ func TestEndToEnd(t *testing.T) {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_basic.yml"
-		rules, err := parsing.ParsingConfigFile(configPath)
+		rulesInfo, err := parsing.ParsingConfigFile(configPath)
+		rules := rulesInfo.RulesArray
 		if err != nil {
 			t.Fatalf("Error parsing config file: %v", err)
 		}
@@ -28,7 +29,7 @@ func TestEndToEnd(t *testing.T) {
 			t.Fatalf("Parsed rules are empty")
 		}
 
-		rules.Loop()
+		rulesInfo.Loop()
 		// Check the log file and what it contains
 		// For the moment just the file
 		checkLogs(rules, t)
@@ -40,7 +41,8 @@ func TestEndToEnd(t *testing.T) {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_recursion.yml"
-		rules, err := parsing.ParsingConfigFile(configPath)
+		rulesInfo, err := parsing.ParsingConfigFile(configPath)
+		rules := rulesInfo.RulesArray
 		if err != nil {
 			t.Fatalf("Error parsing config file: %v", err)
 		}
@@ -48,7 +50,7 @@ func TestEndToEnd(t *testing.T) {
 		if len(rules) == 0 {
 			t.Fatalf("Parsed rules are empty")
 		}
-		rules.Loop()
+		rulesInfo.Loop()
 		for _, rule := range rules {
 			fmt.Println("total", rule.Recursion.BrowseFiles)
 			// Abritray value, but could scale if needed
@@ -67,7 +69,8 @@ func TestEndToEnd(t *testing.T) {
 			t.Fatalf("Error getting current working directory: %v", err)
 		}
 		configPath := pwd + "/config_test/config_regex_match.yml"
-		rules, err := parsing.ParsingConfigFile(configPath)
+		rulesInfo, err := parsing.ParsingConfigFile(configPath)
+		rules := rulesInfo.RulesArray
 		if err != nil {
 			t.Fatalf("Error parsing config file: %v", err)
 		}
@@ -75,7 +78,7 @@ func TestEndToEnd(t *testing.T) {
 		if len(rules) == 0 {
 			t.Fatalf("Parsed rules are empty")
 		}
-		rules.Loop()
+		rulesInfo.Loop()
 		for i, rule := range rules {
 			if i == 0 {
 				for _, logInfo := range rule.Action.LogConfig.FilesInfo {

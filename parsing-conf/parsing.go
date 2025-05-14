@@ -5,31 +5,39 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	// Ensure this package contains the definition for Action
 	"drive-janitor/os_utils"
+	"drive-janitor/recursion"
 	"drive-janitor/rules"
 
 	"gopkg.in/yaml.v2"
 )
 
-func ParsingConfigFile(configPath string) (rules.RulesArray, error) {
+func ParsingConfigFile(configPath string) (rules.RulesInfo, error) {
 	cfg, err := parseYAMLFile(configPath)
 	if err != nil {
 		fmt.Printf("Error parsing config file: %v\n", err)
-		return rules.RulesArray{}, err
+		return rules.RulesInfo{}, err
 	}
 	err = expandPathsInConfig(&cfg)
 	if err != nil {
 		fmt.Printf("Error expanding paths in config file: %v\n", err)
-		return rules.RulesArray{}, err
+		return rules.RulesInfo{}, err
 	}
 	if !mandatoryFieldsGave(cfg) {
 		fmt.Println("Error: missing mandatory fields in config file")
-		return rules.RulesArray{}, fmt.Errorf("missing mandatory fields in config file")
+		return rules.RulesInfo{}, fmt.Errorf("missing mandatory fields in config file")
 	}
 	rulesArray := fillStructs(cfg)
-	return rulesArray, nil
+	var rulesInfo = rules.RulesInfo{
+		RulesArray: rulesArray,
+		WaitGroup:  &sync.WaitGroup{},
+		InfoLoop: make(chan recursion.Recursion),
+
+	}
+	return rulesInfo, nil
 }
 
 func parseYAMLFile(filePath string) (Config, error) {

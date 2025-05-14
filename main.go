@@ -33,6 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 	rules.Loop()
+	rules.WaitGroup.Wait()
 
 	if err != nil {
 		fmt.Println("Error while looping on rules")
