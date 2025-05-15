@@ -5,9 +5,9 @@ import (
 	"drive-janitor/rules"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"testing"
-	"path/filepath"
 )
 
 func TestEndToEnd(t *testing.T) {
@@ -95,7 +95,7 @@ func TestEndToEnd(t *testing.T) {
 // This function only apply to the test : `End to end recursion, checking regex filename`
 func assertMatchTestFilname(fileInfo map[string]string, t *testing.T) {
 	allowed := []string{"samples2/Elephant.txt", "samples2/Kangourou.wav", "samples2/KangourouElephant.voc", "samples2/elephant.webp", "samples2/elkanelkangourou.tiff", "samples2/kangourou.ra"}
-	for i, _ := range(allowed) {
+	for i, _ := range allowed {
 		allowed[i] = filepath.FromSlash(allowed[i])
 	}
 	if !slices.Contains(allowed, fileInfo["path"]) {
