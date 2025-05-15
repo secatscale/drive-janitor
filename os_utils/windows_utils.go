@@ -36,10 +36,6 @@ func GetDownloadPath() (string, error) {
 }
 
 func WhereTrash(osName string) (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get user home directory: %v", err)
-	}
 	return GetWindowsTrashPath()
 }
 
