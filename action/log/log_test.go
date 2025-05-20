@@ -1,4 +1,4 @@
-package main
+package log
 
 import (
 	"fmt"
@@ -9,7 +9,15 @@ import (
 	"time"
 )
 
+func getTempLogPath() string {
+	// Créer un répertoire temporaire pour les tests
+	tempDir := os.TempDir()
+	logPath := filepath.Join(tempDir, "drive_janitor_logs_test.log")
+	return logPath
+}
+
 func TestLog(t *testing.T) {
+	logPath := getTempLogPath()
 	tests := []struct {
 		name string
 		data string
@@ -19,7 +27,7 @@ func TestLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := SaveToFile(tt.data)
+			err := SaveToFile(tt.data, logPath)
 			if err != nil {
 				t.Errorf("SaveToFile failed: %v", err)
 			}
@@ -30,6 +38,7 @@ func TestLog(t *testing.T) {
 
 // Test avec goroutines simultanées
 func TestConcurrentLogging(t *testing.T) {
+	logPath := getTempLogPath()
 	count := 50
 	dataPrefix := "concurrent-log-"
 
@@ -37,7 +46,7 @@ func TestConcurrentLogging(t *testing.T) {
 	for i := 0; i < count; i++ {
 		go func(i int) {
 			msg := fmt.Sprintf("%s%s #%d\n", dataPrefix, time.Now().Format("15:04:05.000"), i)
-			err := SaveToFile(msg)
+			err := SaveToFile(msg, logPath)
 			if err != nil {
 				t.Errorf("SaveToFile failed in goroutine: %v", err)
 			}
@@ -53,9 +62,7 @@ func TestConcurrentLogging(t *testing.T) {
 
 // Vérifie que la donnée est bien dans le fichier de log du jour
 func assertDataIsInFile(t *testing.T, data string) {
-	date := time.Now().Format("2006-01-02")
-	logPath := filepath.Join("logs", "drive_janitor_logs_"+date+".log")
-
+	logPath := getTempLogPath()
 	content, err := os.ReadFile(logPath)
 	if err != nil {
 		t.Fatalf("Failed to read log file: %v", err)

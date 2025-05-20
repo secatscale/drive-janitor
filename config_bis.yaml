@@ -4,20 +4,17 @@ version: 1.0.0
 detections:
   - name: "detection1"
     mimetype: "image/png"
-    max_age: 10
-
   - name: "detection2"
     mimetype: "application/pdf"
-    max_age: -1
 
 recursions:
   - name: "recursion1"
-    path: "$DoWNLOAD/test"
+    path: "$TrAsh"
     max_depth: 10 
 
 logs:
   - name: "logging1"
-    log_repository: "/home/juillardt/Documents/ecole2600/drive_janitor_SQ/drive-janitor/.log"
+    log_repository: "./.log"
 
 actions:
   - name: "action1"
@@ -26,6 +23,10 @@ actions:
 
 rules:
   - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2"]
+    recursion: "recursion1"
+  - name: "FINALRULE2"
     action: "action1"
     detection: ["detection1", "detection2"]
     recursion: "recursion1"

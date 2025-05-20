@@ -1,6 +1,7 @@
 package action
 
 import (
+	"drive-janitor/action/log"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -53,7 +54,7 @@ func (action *Action) SaveToFile() error {
 		for _, fileInfo := range action.LogConfig.FilesInfo {
 			logContent += fileInfo["path"] + "\n"
 		}
-		err := os.WriteFile(action.LogConfig.LogRepository, []byte(logContent), 0644)
+		err := log.SaveToFile(logContent, action.LogConfig.LogRepository)
 		if err != nil {
 			return fmt.Errorf("error writing log file: %w", err)
 		}

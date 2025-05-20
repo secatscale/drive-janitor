@@ -1,13 +1,8 @@
-package main
-
-// unused code
+package log
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/gofrs/flock"
 )
@@ -15,22 +10,7 @@ import (
 // Mutex global pour proteger l'acces concurentiel au fichier
 var fileMutex sync.Mutex
 
-func SaveToFile(data string) error {
-
-	// Creer le dossier logs s'il n'existe pas
-	err := os.MkdirAll("logs", 0755)
-	if err != nil {
-		return err
-	}
-
-	// Creer le chemin du fichier de log
-	date := time.Now().Format("2006-01-02")
-	logPath := fmt.Sprintf("drive_janitor_logs_%s.log", date)
-	logPath = filepath.Join("logs", logPath)
-	logPath, err = filepath.Abs(logPath)
-	if err != nil {
-		return err
-	}
+func SaveToFile(data string, logPath string) error {
 
 	// Verrou interne entre les goroutines
 	fileMutex.Lock()
