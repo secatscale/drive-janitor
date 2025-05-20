@@ -2,9 +2,11 @@
 
 A simple tool to help you detect and delete files on your disk based on their extension, age, or name — even those in the trash.
 
+Run on Windows, Linux and MacOS.
+
 ## Features
 
-- 🧹 Detect and delete unwanted files and folders by extension, age, or name with regex
+- 🧹 Detect and delete unwanted files and folders by extension, age, or name (with regex support)
 - 🗑️ Clean files even from the trash
 - 🔒 Safe: dry-run mode to preview changes
 - ⚡ Fast and easy to use
@@ -35,7 +37,7 @@ Edit `config.yaml` to specify:
     Define which files to match in the `detections` section. Each detection uses a unique `name`, a `mimetype` (e.g., `"image/png"`), and optionally a `max_age` (in days) to filter files by age. Setting `max_age` to `-1` disables age filtering.
 
 - **Recursions**:  
-    Specify which directories to scan in the `recursions` section. Each recursion includes a `name`, a `path` (e.g., `"./samples"`), a `max_depth` for how deep to scan, and an optional `path_to_ignore` list to exclude subdirectories.
+    Specify which directories to scan in the `recursions` section. Each recursion includes a `name`, a start `path` (e.g., `"./samples"`), a `max_depth` for how deep to scan, and an optional `path_to_ignore` list to exclude subdirectories.
 
 - **Logs**:  
     Configure where logs are stored in the `logs` section by setting a `name` and a `log_repository` path (e.g., `"./var/.log"`).
@@ -45,6 +47,8 @@ Edit `config.yaml` to specify:
 
 - **Rules**:  
     Connect detections, recursions, and actions in the `rules` section. Each rule specifies which detections, recursion, and action to use for processing files.
+
+⚡ All paths in the configuration supports `$trash`, `$download` ou `$home` 
 
 Example:
 ```yaml

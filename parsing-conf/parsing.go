@@ -53,9 +53,9 @@ func parseYAMLFile(filePath string) (Config, error) {
 	return cfg, nil
 }
 
-// expandPathsInConfig replaces $TRASH et $DOWNLOAD in the config file
+// expandPathsInConfig replaces $TRASH, $DOWNLOAD and $HOME in the config file
 func expandPathsInConfig(cfg *Config) error {
-	pathsTrashToReplace, pathsDownloadToReplace, err := findPathToReplace(cfg)
+	pathsTrashToReplace, pathsDownloadToReplace, pathsHomeToReplace, err := findPathToReplace(cfg)
 	if err != nil {
 		log.Printf("error finding paths to replace: %v", err)
 		return err
@@ -68,7 +68,7 @@ func expandPathsInConfig(cfg *Config) error {
 			trashPath = ""
 		}
 		for _, path := range pathsTrashToReplace {
-			*path = expandSinglePath(*path, trashPath, "")
+			*path = expandSinglePath(*path, trashPath, "", "")
 		}
 	}
 	// Recherche le repertoire de download uniquement si il y a des chemins download à remplacer
@@ -79,16 +79,28 @@ func expandPathsInConfig(cfg *Config) error {
 			downloadPath = ""
 		}
 		for _, path := range pathsDownloadToReplace {
-			*path = expandSinglePath(*path, "", downloadPath)
+			*path = expandSinglePath(*path, "", downloadPath, "")
+		}
+	}
+	// Recherche le repertoire home uniquement si il y a des chemins home à remplacer
+	if len(pathsHomeToReplace) > 0 {
+		homePath, err := os.UserHomeDir()
+		if err != nil {
+			log.Printf("error getting home path: %v", err)
+			homePath = ""
+		}
+		for _, path := range pathsHomeToReplace {
+			*path = expandSinglePath(*path, "", "", homePath)
 		}
 	}
 	return nil
 }
 
 // fonction pour parcourir la config, et detecter les paths qui nécéssite d'etre remplacé
-func findPathToReplace(cfg *Config) ([]*string, []*string, error) {
+func findPathToReplace(cfg *Config) ([]*string, []*string, []*string, error) {
 	var pathsTrashToReplace []*string
 	var pathsDownloadToReplace []*string
+	var pathsHomeToReplace []*string
 	// Parcours par indice pour eviter de faire des copies et pouvoir retourner des pointeurs
 	// Paths dans ConfigRecursion :
 	for i := range cfg.Recursions {
@@ -101,6 +113,9 @@ func findPathToReplace(cfg *Config) ([]*string, []*string, error) {
 		if strings.Contains(lowerPath, "$download") {
 			pathsDownloadToReplace = append(pathsDownloadToReplace, &rec.Path)
 		}
+		if strings.Contains(lowerPath, "$home") {
+			pathsHomeToReplace = append(pathsHomeToReplace, &rec.Path)
+		}
 		// Path_To_Ignore
 		for j := range rec.Path_To_Ignore {
 			p := &rec.Path_To_Ignore[j]
@@ -110,6 +125,9 @@ func findPathToReplace(cfg *Config) ([]*string, []*string, error) {
 			}
 			if strings.Contains(lower, "$download") {
 				pathsDownloadToReplace = append(pathsDownloadToReplace, p)
+			}
+			if strings.Contains(lower, "$home") {
+				pathsHomeToReplace = append(pathsHomeToReplace, p)
 			}
 		}
 	}
@@ -123,12 +141,15 @@ func findPathToReplace(cfg *Config) ([]*string, []*string, error) {
 		if strings.Contains(lowerLog, "$download") {
 			pathsDownloadToReplace = append(pathsDownloadToReplace, &lg.Log_Repository)
 		}
+		if strings.Contains(lowerLog, "$home") {
+			pathsHomeToReplace = append(pathsHomeToReplace, &lg.Log_Repository)
+		}
 	}
-	return pathsTrashToReplace, pathsDownloadToReplace, nil
+	return pathsTrashToReplace, pathsDownloadToReplace, pathsHomeToReplace, nil
 }
 
 // expandSinglePath remplace $TRASH et $DOWNLOAD dans un seul chemin
-func expandSinglePath(path, trashPath, downloadPath string) string {
+func expandSinglePath(path, trashPath, downloadPath, homePath string) string {
 	pathsplit := strings.Split(path, "/")
 	for i, part := range pathsplit {
 		if strings.Contains(strings.ToLower(part), "$trash") {
@@ -136,6 +157,9 @@ func expandSinglePath(path, trashPath, downloadPath string) string {
 		}
 		if strings.Contains(strings.ToLower(part), "$download") {
 			pathsplit[i] = downloadPath
+		}
+		if strings.Contains(strings.ToLower(part), "$home") {
+			pathsplit[i] = homePath
 		}
 	}
 	path = strings.Join(pathsplit, "/")
