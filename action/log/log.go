@@ -32,25 +32,29 @@ func SaveToFile(data string, logPath string) error {
 }
 
 func loadFileWithlock(logPath string) (*os.File, *flock.Flock, error) {
-	// Creer un lock sur le fichier
-	lock := flock.NewFlock(logPath)
-	// Essayer de locker le fichier
+	// Create a lock on the file using the new API
+	lock := flock.New(logPath)
+
+	// Try to lock the file
 	err := lock.Lock()
 	if err != nil {
 		return nil, nil, err
 	}
-	// Ouvrir ou creer le fichier
+
+	// Open or create the file
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		lock.Unlock()
 		return nil, nil, err
 	}
+
 	return f, lock, nil
 }
 
 func closeFileAndUnlock(f *os.File, lock *flock.Flock) error {
 	err := f.Close()
 	if err != nil {
+		lock.Unlock()
 		return err
 	}
 	err = lock.Unlock()
