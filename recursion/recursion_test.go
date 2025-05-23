@@ -162,7 +162,7 @@ func TestRecursionComplex(t *testing.T) {
 		config := Recursion{
 			InitialPath:     filepath.Join(path, dir),
 			MaxDepth:        8,
-			SkipDirectories: []string{"1/2"},
+			SkipDirectories: []string{filepath.FromSlash("1/2")},
 			BrowseFiles:     0,
 		}
 		err = config.Recurse(detection, &action)
