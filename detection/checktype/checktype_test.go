@@ -96,7 +96,7 @@ func TestCheckType(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error getting file path: %s", err)
 			}
-			fileType, err := CheckType(filePath)
+			fileType, err := GetType(filePath)
 			if err != nil {
 				t.Errorf("Error checking file type: %s", err)
 			}

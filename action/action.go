@@ -109,13 +109,13 @@ func GenerateCSV(FilesInfo []FileInfo) string {
 func (action *Action) EnrichLogs() {
 	for i, fileInfo := range action.LogConfig.FilesInfo {
 
-		fileType, err := checktype.CheckType(fileInfo["path"])
+		fileType, err := checktype.GetType(fileInfo["path"])
 		if err != nil {
 			fileType = "unknown"
 		}
 
 		fileInfo["file_type"] = string(fileType)
-		fileAge, err := checkage.CheckAge(fileInfo["path"])
+		fileAge, err := checkage.GetAge(fileInfo["path"])
 		if err != nil {
 			fileAge = -1 // Indicate an error in age calculation
 		}

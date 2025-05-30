@@ -6,7 +6,7 @@ import (
 )
 
 // CheckAge is a function that takes a file path and returns the age of the file in days.
-func CheckAge(filePath string) (int, error) {
+func GetAge(filePath string) (int, error) {
 	info, err := os.Stat(filePath)
 	if err != nil {
 		return 0, err

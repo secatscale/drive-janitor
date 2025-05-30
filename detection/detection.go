@@ -31,7 +31,7 @@ func (detection Detection) FileTypeMatching(path string) (bool, error) {
 		return true, nil
 	}
 	// Call la function check type sur le path
-	fileType, err := checktype.CheckType(path)
+	fileType, err := checktype.GetType(path)
 	if err != nil {
 		return false, err
 	}
@@ -49,7 +49,7 @@ func (detection Detection) FileAgeMatching(path string) (bool, error) {
 		return true, nil
 	}
 	// Call la function check age sur le path
-	age, err := checkage.CheckAge(path)
+	age, err := checkage.GetAge(path)
 	if err != nil {
 		return false, err
 	}
