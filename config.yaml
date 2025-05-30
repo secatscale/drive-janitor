@@ -19,6 +19,7 @@ recursions:
 
 logs:
   - name: "logging1"
+    log_format: "text"
     log_repository: "./var/.log"
 
 actions:

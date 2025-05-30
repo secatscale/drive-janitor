@@ -145,6 +145,12 @@ func checkLog(cfg Config) error {
 		if log.Name == "" {
 			return fmt.Errorf("name is required")
 		}
+		if log.Log_Format == "" {
+			return fmt.Errorf("log format is required")
+		}
+		if log.Log_Format != "text" && log.Log_Format != "json" && log.Log_Format != "csv" {
+			return fmt.Errorf("unsupported log format: %s (only `text`, `json`, `csv` are supported)", log.Log_Format)
+		}
 		if log.Log_Repository == "" {
 			return fmt.Errorf("log repository is required")
 		}
