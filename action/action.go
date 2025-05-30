@@ -2,6 +2,8 @@ package action
 
 import (
 	"drive-janitor/action/log"
+	"drive-janitor/detection/checkage"
+	"drive-janitor/detection/checktype"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +15,6 @@ func (action *Action) TakeAction(filePath string) {
 		// TODO: Implement delete action
 		// os.Remove(filePath)
 	}
-
 	// Maybe une fonction pour ca ? :below
 	if action.Log {
 		FileInfo := FileInfo{"path": filePath}
@@ -47,20 +48,79 @@ func (action *Action) SaveToFile() error {
 	if err != nil {
 		return fmt.Errorf("error creating log directory: %w", err)
 	}
+	// Enrich logs with additional information
+	action.EnrichLogs()
+	var logContent string
 	switch action.LogConfig.Format {
 	case LogFormatText:
-		// Write log to text file
-		var logContent string
-		for _, fileInfo := range action.LogConfig.FilesInfo {
-			logContent += fileInfo["path"] + "\n"
-		}
-		err := log.SaveToFile(logContent, action.LogConfig.LogRepository)
-		if err != nil {
-			return fmt.Errorf("error writing log file: %w", err)
-		}
+		logContent = GenerateTXT(action.LogConfig.FilesInfo)
+	case LogFormatJSON:
+		logContent = GenerateJSON(action.LogConfig.FilesInfo)
+	case LogFormatCSV:
+		logContent = GenerateCSV(action.LogConfig.FilesInfo)
 	default:
-		//TODO: Implement other formats
 		return fmt.Errorf("unsupported log format: %s", action.LogConfig.Format)
 	}
+	err = log.SaveToFile(logContent, action.LogConfig.LogRepository)
+	if err != nil {
+		return fmt.Errorf("error saving log file: %w", err)
+	}
 	return nil
+}
+
+func GenerateTXT(FilesInfo []FileInfo) string {
+	var logContent string
+	for _, fileInfo := range FilesInfo {
+		logContent += fmt.Sprintf("Path: %s\nFile Type: %s\nFile Age: %s\n",
+			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+		logContent += "------------------------\n"
+	}
+	return logContent
+}
+
+func GenerateJSON(FilesInfo []FileInfo) string {
+	var logContent string
+	// logContent += "{"
+	logContent += "["
+	for _, fileInfo := range FilesInfo {
+		logContent += fmt.Sprintf("{\"path\": \"%s\", \"file_type\": \"%s\", \"file_age\": \"%s\"},",
+			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+	}
+	// Remove the last comma and close the JSON object
+	if len(logContent) > 1 {
+		logContent = logContent[:len(logContent)-1]
+	}
+	logContent += "]"
+	// logContent += "}"
+	return logContent
+}
+
+func GenerateCSV(FilesInfo []FileInfo) string {
+	var logContent string
+	logContent += "path,file_type,file_age\n"
+	for _, fileInfo := range FilesInfo {
+		logContent += fmt.Sprintf("%s,%s,%s\n",
+			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+	}
+	return logContent
+}
+
+// Enrich fileInfo with timestamp, file type, and file age in days
+func (action *Action) EnrichLogs() {
+	for i, fileInfo := range action.LogConfig.FilesInfo {
+
+		fileType, err := checktype.CheckType(fileInfo["path"])
+		if err != nil {
+			fileType = "unknown"
+		}
+
+		fileInfo["file_type"] = string(fileType)
+		fileAge, err := checkage.CheckAge(fileInfo["path"])
+		if err != nil {
+			fileAge = -1 // Indicate an error in age calculation
+		}
+		fileInfo["file_age"] = fmt.Sprintf("%d days", fileAge)
+
+		action.LogConfig.FilesInfo[i] = fileInfo
+	}
 }

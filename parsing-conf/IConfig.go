@@ -1,5 +1,9 @@
 package parsing
 
+import (
+	"drive-janitor/action"
+)
+
 type ConfigDetection struct {
 	Name     string
 	MimeType string
@@ -29,6 +33,7 @@ type ConfigRule struct {
 
 type ConfigLog struct {
 	Name           string
+	Log_Format     action.LogFormat
 	Log_Repository string
 }
 

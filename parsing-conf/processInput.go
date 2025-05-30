@@ -95,7 +95,7 @@ func getLogRules(logsRules []ConfigLog, logRuleName string) (action.Log, error) 
 	for _, log := range logsRules {
 		if log.Name == logRuleName {
 			return action.Log{
-				Format:        action.LogFormatText,
+				Format:        log.Log_Format,
 				LogRepository: log.Log_Repository,
 			}, nil
 		}

@@ -11,7 +11,8 @@ func CheckAge(filePath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	// ModTime returns the last modification time of the file
+	// It's cross-platform compatible
 	age := time.Since(info.ModTime()).Hours() / 24
-	// fmt.Println(age)
 	return int(age), nil
 }
