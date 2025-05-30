@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+	"time"
 )
 
 func TestEndToEnd(t *testing.T) {
@@ -31,6 +32,10 @@ func TestEndToEnd(t *testing.T) {
 		}
 
 		rulesInfo.Loop()
+
+		// we wait before checking the log file
+		time.Sleep(1000 * 1000 * 1000) // 2 seconds
+
 		// Check the log file and what it contains
 		// For the moment just the file
 		checkLogs(rules, t)
