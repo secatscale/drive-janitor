@@ -6,7 +6,7 @@ Run on Windows, Linux and MacOS.
 
 ## Features
 
-- 🧹 Detect and delete unwanted files and folders by extension, age, or name (with regex support)
+- 🧹 Detect and delete unwanted files and folders by extension (MIME type), age (Ctime), or name (with regex support)
 - 🗑️ Clean files even from the trash
 - 🔒 Safe: dry-run mode to preview changes
 - ⚡ Fast and easy to use
@@ -34,16 +34,16 @@ go run drive-janitor -config config.yaml
 Edit `config.yaml` to specify:
 
 - **Detections**:  
-    Define which files to match in the `detections` section. Each detection uses a unique `name`, a `mimetype` (e.g., `"image/png"`), and optionally a `max_age` (in days) to filter files by age. Setting `max_age` to `-1` disables age filtering.
+    Define which files to match in the `detections` section. Each detection uses a unique rule `name`, a `mimetype` (e.g., `"image/png"`), and optionally a `max_age` (in days) to filter files by age. Setting `max_age` to `-1` disables age filtering.
 
 - **Recursions**:  
-    Specify which directories to scan in the `recursions` section. Each recursion includes a `name`, a start `path` (e.g., `"./samples"`), a `max_depth` for how deep to scan, and an optional `path_to_ignore` list to exclude subdirectories.
+    Specify which directories to scan in the `recursions` section. Each recursion includes a rule `name`, a start `path` (e.g., `"./samples"`), a `max_depth` for how deep to scan, and an optional `path_to_ignore` list to exclude subdirectories.
 
 - **Logs**:  
-    Configure where logs are stored in the `logs` section by setting a `name` and a `log_repository` path (e.g., `"./var/.log"`).
+    Configure where logs are stored in the `logs` section by setting a rule `name`, a `log_format` (text, json or csv) and a `log_repository` path (e.g., `"./var/.log"`).
 
 - **Actions**:  
-    Define what happens to matched files in the `actions` section. Each action has a `name`, a `delete` flag (e.g., `false` to only log), and a `log` reference.
+    Define what happens to matched files in the `actions` section. Each action has a rule `name`, a `delete` flag (e.g., `false` to only log), and a `log` reference.
 
 - **Rules**:  
     Connect detections, recursions, and actions in the `rules` section. Each rule specifies which detections, recursion, and action to use for processing files.
