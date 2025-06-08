@@ -14,6 +14,7 @@ recursions:
 
 logs:
   - name: "logging1"
+    log_format: "csv"
     log_repository: "./.log"
 
 actions:
@@ -23,10 +24,6 @@ actions:
 
 rules:
   - name: "FINALRULE1"
-    action: "action1"
-    detection: ["detection1", "detection2"]
-    recursion: "recursion1"
-  - name: "FINALRULE2"
     action: "action1"
     detection: ["detection1", "detection2"]
     recursion: "recursion1"

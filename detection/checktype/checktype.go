@@ -8,7 +8,7 @@ import (
 	"github.com/h2non/filetype"
 )
 
-func CheckType(filePath string) (fileType string, err error) {
+func GetType(filePath string) (fileType string, err error) {
 	//Stat rapide pour eviter les fichiers spéciaux
 	info, err := os.Lstat(filePath)
 	if err != nil {

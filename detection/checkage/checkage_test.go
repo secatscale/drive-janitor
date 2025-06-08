@@ -20,7 +20,7 @@ func TestCheckAge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.testname, func(t *testing.T) {
 			filePath, err := filepath.Abs(filepath.Join("../../samples", tt.fileName))
-			got, err := CheckAge(filePath)
+			got, err := GetAge(filePath)
 			if err != nil {
 				t.Fatalf("Error: %v", err)
 			}
