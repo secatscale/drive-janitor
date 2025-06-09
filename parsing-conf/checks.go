@@ -105,7 +105,8 @@ func checkDetection(cfg Config) error {
 		if d.Name == "" {
 			return fmt.Errorf("name is required")
 		}
-		if d.MimeType == "" && d.Max_Age == 0 && d.Filename == "" {
+
+		if d.MimeType == "" && d.Max_Age == 0 && d.Filename == "" && d.Yara_Rules_Dir == "" {
 			return fmt.Errorf("at least one of mime type, max age or filename is required")
 		}
 		if d.MimeType != "" {

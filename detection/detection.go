@@ -3,6 +3,7 @@ package detection
 import (
 	"drive-janitor/detection/checkage"
 	"drive-janitor/detection/checktype"
+	"drive-janitor/detection/checkyara"
 	"path/filepath"
 	"regexp"
 )
@@ -23,7 +24,11 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return typeMatch && ageMatch && filenameMatch, nil
+	yaraMatch, err := detection.YaraMatching(path)
+	if err != nil {
+		return false, err
+	}
+	return typeMatch && ageMatch && filenameMatch && yaraMatch, nil
 }
 
 func (detection Detection) FileTypeMatching(path string) (bool, error) {
@@ -69,4 +74,16 @@ func (detection Detection) FileNameMatching(path string) (bool, error) {
 	match, err := regexp.MatchString(detection.Filename, filename)
 
 	return match, err
+}
+
+func (detection Detection) YaraMatching(path string) (bool, error) {
+	if detection.YaraRulesDir == "" {
+		return true, nil
+	}
+	// Call la function check yara sur le path, pour les regles dans YaraRulesDir
+	match, err := checkyara.CheckYara(path, detection.YaraRulesDir)
+	if err != nil {
+		return false, err
+	}
+	return match, nil
 }
