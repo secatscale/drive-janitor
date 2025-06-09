@@ -1,7 +1,7 @@
 rule MaliciousFile
 {
     strings:
-        $mal = "malicious"
+        $mal = "verymalicious"
     condition:
         $mal
 }

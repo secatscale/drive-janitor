@@ -1,0 +1,27 @@
+name: TestMain
+version: 1.0.0
+
+detections:
+  - name: "detectionyara"
+    yara_rules_dir: "./detection/checkyara/yararules"
+
+recursions:
+  - name: "recursion1"
+    path: "."
+    max_depth: 10 
+
+logs:
+  - name: "logging1"
+    log_format: "csv"
+    log_repository: "./.log"
+
+actions:
+  - name: "action1"
+    delete: false 
+    log: "logging1"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection:  ["detectionyara"]
+    recursion: "recursion1"

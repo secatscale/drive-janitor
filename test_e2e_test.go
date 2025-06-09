@@ -63,7 +63,7 @@ func TestEndToEnd(t *testing.T) {
 			// need to to count the number of files in the directory
 			// and check if the number of files is correct
 			// by subing the number of files in the skip directories
-			if rule.Recursion.BrowseFiles != 57 {
+			if rule.Recursion.BrowseFiles != 58 {
 				t.Fatalf("Number of files browsed is not correct: %d\n We probaly didn't skipdir, or we changed samples repo", rule.Recursion.BrowseFiles)
 			}
 		}
@@ -94,12 +94,50 @@ func TestEndToEnd(t *testing.T) {
 			fmt.Println("total", rule.Recursion.BrowseFiles)
 		}
 	})
+
+	t.Run("End to end recursion, checking YARA rules", func(t *testing.T) {
+		pwd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("Error getting current working directory: %v", err)
+		}
+		configPath := pwd + "/config_test/config_yara_match.yml"
+		rulesInfo, err := parsing.ParsingConfigFile(configPath)
+		rules := rulesInfo.RulesArray
+		if err != nil {
+			t.Fatalf("Error parsing config file: %v", err)
+		}
+		// Should not happen
+		if len(rules) == 0 {
+			t.Fatalf("Parsed rules are empty")
+		}
+		rulesInfo.Loop()
+		for i, rule := range rules {
+			if i == 0 {
+				for _, logInfo := range rule.Action.LogConfig.FilesInfo {
+					assertMatchTestYara(logInfo, t)
+				}
+			}
+			fmt.Println("total", rule.Recursion.BrowseFiles)
+		}
+	})
+
 }
 
 // Arbritary checking file matching in samples2
 // This function only apply to the test : `End to end recursion, checking regex filename`
 func assertMatchTestFilname(fileInfo map[string]string, t *testing.T) {
 	allowed := []string{"samples2/Elephant.txt", "samples2/Kangourou.wav", "samples2/KangourouElephant.voc", "samples2/elephant.webp", "samples2/elkanelkangourou.tiff", "samples2/kangourou.ra"}
+	for i, _ := range allowed {
+		allowed[i] = filepath.FromSlash(allowed[i])
+	}
+	if !slices.Contains(allowed, fileInfo["path"]) {
+		t.Fatalf("Match a file we should not match: %v", fileInfo["path"])
+	}
+}
+
+// Arbritary checking YARA matching in samples2
+func assertMatchTestYara(fileInfo map[string]string, t *testing.T) {
+	allowed := []string{"samples/test_yara_match.txt", "detection/checkyara/yararules/malicious.yar"}
 	for i, _ := range allowed {
 		allowed[i] = filepath.FromSlash(allowed[i])
 	}
