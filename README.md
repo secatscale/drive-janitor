@@ -6,10 +6,10 @@ Run on Windows, Linux and MacOS.
 
 ## Features
 
-- 🧹 Detect and delete unwanted files and folders by extension (MIME type), age (Ctime), or name (with regex support)
+- 🧹 Detect and delete unwanted files by extension (MIME type), age (Ctime), or name (with regex support)
 - 🗑️ Clean files even from the trash
 - 🔒 Safe: dry-run mode to preview changes
-- ⚡ Fast and easy to use
+- ⚡ Fast and easy to use, with a simple YAML configuration
 
 ## Installation
 
