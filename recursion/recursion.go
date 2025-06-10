@@ -49,9 +49,12 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 			}
 			return err
 		}
-		if strings.HasPrefix(path, "proc") {
-			// On ignore le dossier proc
-			return fs.SkipDir
+		badDirs := []string{"/dev/fd", "/proc", "fd/"}
+
+		for _, bad := range badDirs {
+			if strings.HasPrefix(path, bad) {
+				return fs.SkipDir
+			}
 		}
 
 		//fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
