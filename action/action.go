@@ -10,16 +10,33 @@ import (
 	"time"
 )
 
-func (action *Action) TakeAction(filePath string) {
+func (action *Action) TakeAction(filePath string, detectionsMatch []string) {
 	if action.Delete {
 		// TODO: Implement delete action
-		// os.Remove(filePath)
+		os.Remove(filePath)
 	}
-	// Maybe une fonction pour ca ? :below
+
+	detectedBy := buildDetectedByString(detectionsMatch)
+
 	if action.Log {
-		FileInfo := FileInfo{"path": filePath}
+		FileInfo := FileInfo{"detectedBy": detectedBy, "path": filePath}
 		action.LogConfig.FilesInfo = append(action.LogConfig.FilesInfo, FileInfo)
 	}
+}
+
+func buildDetectedByString(detectionsMatch []string) string {
+	var detectedBy string
+	if len(detectionsMatch) > 0 {
+		for _, detection := range detectionsMatch {
+			if detectedBy != "" {
+				detectedBy += " and "
+			}
+			detectedBy += detection
+		}
+	} else {
+		detectedBy = "unknown"
+	}
+	return detectedBy
 }
 
 func (action *Action) GetLogFileName() error {
@@ -71,8 +88,7 @@ func (action *Action) SaveToFile() error {
 func GenerateTXT(FilesInfo []FileInfo) string {
 	var logContent string
 	for _, fileInfo := range FilesInfo {
-		logContent += fmt.Sprintf("Path: %s\nFile Type: %s\nFile Age: %s\n",
-			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+		logContent += fmt.Sprintf("Detected By: %s\nPath: %s\nFile Type: %s\nFile Age: %s\n", fileInfo["detectedBy"], fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
 		logContent += "------------------------\n"
 	}
 	return logContent
@@ -83,8 +99,7 @@ func GenerateJSON(FilesInfo []FileInfo) string {
 	// logContent += "{"
 	logContent += "["
 	for _, fileInfo := range FilesInfo {
-		logContent += fmt.Sprintf("{\"path\": \"%s\", \"file_type\": \"%s\", \"file_age\": \"%s\"},",
-			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+		logContent += fmt.Sprintf("{\"detected by\":\"%s\", \"path\": \"%s\", \"file_type\": \"%s\", \"file_age\": \"%s\"},", fileInfo["detectedBy"], fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
 	}
 	// Remove the last comma and close the JSON object
 	if len(logContent) > 1 {
@@ -97,10 +112,9 @@ func GenerateJSON(FilesInfo []FileInfo) string {
 
 func GenerateCSV(FilesInfo []FileInfo) string {
 	var logContent string
-	logContent += "path,file_type,file_age\n"
+	logContent += "detectedby,path,file_type,file_age\n"
 	for _, fileInfo := range FilesInfo {
-		logContent += fmt.Sprintf("%s,%s,%s\n",
-			fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
+		logContent += fmt.Sprintf("%s,%s,%s,%s\n", fileInfo["detectedBy"], fileInfo["path"], fileInfo["file_type"], fileInfo["file_age"])
 	}
 	return logContent
 }

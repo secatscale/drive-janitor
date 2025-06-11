@@ -34,7 +34,7 @@ func isInSkipDirectories(path string, skipDirectories []string) bool {
 	return slices.Contains(skipDirectories, path)
 }
 
-func (config *Recursion) Recurse(detection detection.DetectionArray, action *action.Action) error {
+func (config *Recursion) Recurse(detectionsArray detection.DetectionArray, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
@@ -63,14 +63,14 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 			// If it is, then we do the action
 
 			absolutePath := filepath.Join(config.InitialPath, path)
-			needAction, err := detection.AsMatch(absolutePath)
+			detectionsMatch, needAction, err := detectionsArray.AsMatch(absolutePath)
 			if err != nil {
 				return err
 			}
 			if needAction {
 				fmt.Println("File detected: ", absolutePath)
 				// call the action
-				action.TakeAction(absolutePath)
+				action.TakeAction(absolutePath, detectionsMatch)
 			}
 			config.BrowseFiles += 1
 		}
