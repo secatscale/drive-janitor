@@ -35,10 +35,11 @@ func fillDetection(cfgDetectionList []ConfigDetection, currentDetectionListName 
 		if matchingIndex != -1 {
 			{
 				detectionArray = append(detectionArray, detection.Detection{
-					Name:     cfgDetectionList[matchingIndex].Name,
-					MimeType: cfgDetectionList[matchingIndex].MimeType,
-					Filename: cfgDetectionList[matchingIndex].Filename,
-					Age:      cfgDetectionList[matchingIndex].Max_Age,
+					Name:         cfgDetectionList[matchingIndex].Name,
+					MimeType:     cfgDetectionList[matchingIndex].MimeType,
+					Filename:     cfgDetectionList[matchingIndex].Filename,
+					Age:          cfgDetectionList[matchingIndex].Max_Age,
+					YaraRulesDir: cfgDetectionList[matchingIndex].Yara_Rules_Dir,
 				})
 			}
 		}
