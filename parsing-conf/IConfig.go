@@ -5,10 +5,11 @@ import (
 )
 
 type ConfigDetection struct {
-	Name     string
-	MimeType string
-	Filename string
-	Max_Age  int
+	Name           string
+	MimeType       string
+	Filename       string
+	Max_Age        int
+	Yara_Rules_Dir string
 }
 
 type ConfigRecursion struct {
