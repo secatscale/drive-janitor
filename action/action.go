@@ -13,7 +13,7 @@ import (
 func (action *Action) TakeAction(filePath string, detectionsMatch []string) {
 	if action.Delete {
 		// TODO: Implement delete action
-		os.Remove(filePath)
+		// os.Remove(filePath)
 	}
 
 	detectedBy := buildDetectedByString(detectionsMatch)
