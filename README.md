@@ -16,8 +16,16 @@ Run on Windows, Linux and MacOS.
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/drive-janitor.git
-cd drive-janitor
+	git clone https://github.com/yourusername/drive-janitor.git
+	cd drive-janitor
+```
+
+Need pkg-config :
+
+```
+	vcpkg install yara
+	apt-get install libyara-dev yara pkg-config
+	brew install pkg-config yara
 ```
 
 ## Usage

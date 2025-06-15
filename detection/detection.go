@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// Look for a matching criteria on the file path for the current rules
 func (detection Detection) IsDetected(path string) (bool, error) {
 	// Call la function check type sur le path
 	typeMatch, err := detection.FileTypeMatching(path)
@@ -28,6 +29,9 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	// Ducoup on pourrais save les infos des match dans une structure ou quoi ici et pas call enrich logs
+	// Genre une structure infoMatch avec le path et les info de match pour le enrich logs plus tard 
 	return typeMatch && ageMatch && filenameMatch && yaraMatch, nil
 }
 

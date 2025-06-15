@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	// Ensure this package contains the definition for Action
 	"drive-janitor/os_utils"
 	"drive-janitor/recursion"
 	"drive-janitor/rules"
@@ -15,19 +14,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// We parse, checking for errors in the config file
+// Also preparing our structs for the rules
 func ParsingConfigFile(configPath string) (rules.RulesInfo, error) {
 	cfg, err := parseYAMLFile(configPath)
 	if err != nil {
-		fmt.Printf("Error parsing config file: %v\n", err)
 		return rules.RulesInfo{}, err
 	}
 	err = expandPathsInConfig(&cfg)
 	if err != nil {
-		fmt.Printf("Error expanding paths in config file: %v\n", err)
+		err = fmt.Errorf("error expanding paths in config file: %v", err)
 		return rules.RulesInfo{}, err
 	}
 	if !mandatoryFieldsGave(cfg) {
-		fmt.Println("Error: missing mandatory fields in config file")
 		return rules.RulesInfo{}, fmt.Errorf("missing mandatory fields in config file")
 	}
 	rulesArray := fillStructs(cfg)
@@ -57,14 +56,14 @@ func parseYAMLFile(filePath string) (Config, error) {
 func expandPathsInConfig(cfg *Config) error {
 	pathsTrashToReplace, pathsDownloadToReplace, pathsHomeToReplace, err := findPathToReplace(cfg)
 	if err != nil {
-		log.Printf("error finding paths to replace: %v", err)
+		err = fmt.Errorf("error finding paths to replace: %w", err)
 		return err
 	}
 	// Recherche le repertoire de la corbeille uniquement si il y a des chemins corbeille à remplacer
 	if len(pathsTrashToReplace) > 0 {
 		trashPath, err := os_utils.WhereTrash(os_utils.WhichOs())
 		if err != nil {
-			log.Printf("error getting trash path: %v", err)
+			log.Printf("error getting trash path in expandPathsInConfig: %v", err)
 			trashPath = ""
 		}
 		for _, path := range pathsTrashToReplace {
@@ -75,7 +74,7 @@ func expandPathsInConfig(cfg *Config) error {
 	if len(pathsDownloadToReplace) > 0 {
 		downloadPath, err := os_utils.GetDownloadPath()
 		if err != nil {
-			log.Printf("error getting download path: %v", err)
+			log.Printf("error getting download path in expandPathsInConfig: %v", err)
 			downloadPath = ""
 		}
 		for _, path := range pathsDownloadToReplace {
@@ -86,7 +85,7 @@ func expandPathsInConfig(cfg *Config) error {
 	if len(pathsHomeToReplace) > 0 {
 		homePath, err := os.UserHomeDir()
 		if err != nil {
-			log.Printf("error getting home path: %v", err)
+			log.Printf("error getting home path in expandPathsInConfig: %v", err)
 			homePath = ""
 		}
 		for _, path := range pathsHomeToReplace {
@@ -171,32 +170,32 @@ func expandSinglePath(path, trashPath, downloadPath, homePath string) string {
 func mandatoryFieldsGave(cfg Config) bool {
 	err := checkRecursion(cfg)
 	if err != nil {
-		log.Printf("error in recursion: %v", err)
+		log.Printf("mandatoryFieldsGave: error in recursion: %v", err)
 		return false
 	}
 	err = checkDetection(cfg)
 	if err != nil {
-		log.Printf("error in detection: %v", err)
+		log.Printf("mandatoryFieldsGave: error in detection: %v", err)
 		return false
 	}
 	err = checkAction(cfg)
 	if err != nil {
-		log.Printf("error in action: %v", err)
+		log.Printf("mandatoryFieldsGave: error in action: %v", err)
 		return false
 	}
 	err = checkRules(cfg)
 	if err != nil {
-		log.Printf("error in rules: %v", err)
+		log.Printf("mandatoryFieldsGave: error in rules: %v", err)
 		return false
 	}
 	err = checkLog(cfg)
 	if err != nil {
-		log.Printf("error in logs: %v", err)
+		log.Printf("mandatoryFieldsGave: error in logs: %v", err)
 		return false
 	}
 	err = checkUniqueNames(cfg)
 	if err != nil {
-		log.Printf("error in unique names: %v", err)
+		log.Printf("mandatoryFieldsGave: error in unique names: %v", err)
 		return false
 	}
 	return true
