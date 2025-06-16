@@ -130,6 +130,20 @@ func findPathToReplace(cfg *Config) ([]*string, []*string, []*string, error) {
 			}
 		}
 	}
+	// Paths dans ConfigDetection :
+	for i := range cfg.Detections {
+		det := &cfg.Detections[i]
+		lowerYaraDir := strings.ToLower(det.Yara_Rules_Dir)
+		if strings.Contains(lowerYaraDir, "$trash") {
+			pathsTrashToReplace = append(pathsTrashToReplace, &det.Yara_Rules_Dir)
+		}
+		if strings.Contains(lowerYaraDir, "$download") {
+			pathsDownloadToReplace = append(pathsDownloadToReplace, &det.Yara_Rules_Dir)
+		}
+		if strings.Contains(lowerYaraDir, "$home") {
+			pathsHomeToReplace = append(pathsHomeToReplace, &det.Yara_Rules_Dir)
+		}
+	}
 	// Paths dans ConfigLog : LogRepository
 	for i := range cfg.Logs {
 		lg := &cfg.Logs[i]

@@ -6,8 +6,9 @@ detections:
     mimetype: "image/png"
   - name: "detection2"
     mimetype: "application/pdf"
-  - name: "detectionyara"
-    yara_rules_dir: "./detection/checkyara/yararules"
+  - name: "detection3"
+    mimetype: "application/pdf"
+
 
 recursions:
   - name: "recursion1"
@@ -16,7 +17,7 @@ recursions:
 
 logs:
   - name: "logging1"
-    log_format: "csv"
+    log_format: "json"
     log_repository: "./.log"
 
 actions:
@@ -27,5 +28,5 @@ actions:
 rules:
   - name: "FINALRULE1"
     action: "action1"
-    detection: ["detection1", "detection2", "detectionyara"]
+    detection: ["detection1", "detection2", "detection3"]
     recursion: "recursion1"
