@@ -34,8 +34,8 @@ func main() {
 	}
 
 	rules.Loop()
-    rules.WaitGroup.Wait()
-    close(rules.InfoLoop)
+	rules.WaitGroup.Wait()
+	close(rules.InfoLoop)
 
 	if err != nil {
 		fmt.Println("Error while looping on rules: ", err)

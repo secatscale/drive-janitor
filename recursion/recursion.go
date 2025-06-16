@@ -33,7 +33,6 @@ func isInSkipDirectories(path string, skipDirectories []string) bool {
 	return slices.Contains(skipDirectories, path)
 }
 
-
 // Main recursion loop, from the initial path, we will recurse through all directories and files
 func (config *Recursion) Recurse(detection detection.DetectionArray, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
@@ -66,7 +65,7 @@ func (config *Recursion) Recurse(detection detection.DetectionArray, action *act
 				return err
 			}
 			if needAction {
-//				fmt.Println("File detected: ", absolutePath)
+				//				fmt.Println("File detected: ", absolutePath)
 				// call the action
 				action.TakeAction(absolutePath)
 			}
