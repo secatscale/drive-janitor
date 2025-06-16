@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Saving the log to a file for the current rules
 func saveLog(action *action.Action) {
 	err := action.GetLogFileName()
 	if err != nil {
@@ -24,6 +25,7 @@ func saveLog(action *action.Action) {
 	}
 }
 
+// Main function to loop through the rules and execute them
 func (r RulesInfo) Loop() {
 	for _, rules := range r.RulesArray {
 		// Running each rules in a separate goroutine
@@ -45,6 +47,7 @@ func (r RulesInfo) Loop() {
 				panic(err) // be careful using panic in goroutines
 			}
 			if rules.Action.Log {
+				// Here we should take rules, not just action ..
 				saveLog(rules.Action)
 			}
 		}(rules)

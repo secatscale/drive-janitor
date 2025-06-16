@@ -3,7 +3,6 @@ package recursion
 import (
 	"drive-janitor/action"
 	"drive-janitor/detection"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -34,13 +33,11 @@ func isInSkipDirectories(path string, skipDirectories []string) bool {
 	return slices.Contains(skipDirectories, path)
 }
 
+// Main recursion loop, from the initial path, we will recurse through all directories and files
 func (config *Recursion) Recurse(detectionsArray detection.DetectionArray, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)
-		//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
-		//	fmt.Println("Path: ", path, "Skip: ", config.SkipDirectories, "Start: ", config.InitialPath)
-		//	fmt.Println(path, err, entry, entry.Type().IsRegular(), isAboveMaxDepth(path, config.MaxDepth))
 
 		if err != nil {
 			if os.IsPermission(err) {
@@ -57,24 +54,22 @@ func (config *Recursion) Recurse(detectionsArray detection.DetectionArray, actio
 			}
 		}
 
-		//fmt.Println(isInSkipDirectories(path, config.SkipDirectories), path, config.SkipDirectories)
 		if isAboveMaxDepth(path, config.MaxDepth) || isInSkipDirectories(path, config.SkipDirectories) {
 			return fs.SkipDir
 		}
 		if entry.Type().IsRegular() {
-			// We should check if the file should be detected or not
-			// If it is, then we do the action
-
 			absolutePath := filepath.Join(config.InitialPath, path)
+			// Check if we need action on the current file
 			detectionsMatch, needAction, err := detectionsArray.AsMatch(absolutePath)
 			if err != nil {
 				return err
 			}
 			if needAction {
-				fmt.Println("File detected: ", absolutePath)
+				//				fmt.Println("File detected: ", absolutePath)
 				// call the action
 				action.TakeAction(absolutePath, detectionsMatch)
 			}
+			// Maybe useless TODO remove this and fix the tests
 			config.BrowseFiles += 1
 		}
 		return nil

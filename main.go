@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// checkConfigFileArgument checks if the config file argument is provided and valid
 func checkConfigFileArgument(configPath *string) error {
 	flag.StringVar(configPath, "config", "", "Path to the config file")
 	flag.Parse()
@@ -24,19 +25,20 @@ func checkConfigFileArgument(configPath *string) error {
 func main() {
 	var configPath string
 	if checkConfigFileArgument(&configPath) != nil {
-		//		fmt.Println("Error getting config file path")
 		os.Exit(1)
 	}
 	rules, err := parsing.ParsingConfigFile(configPath)
 	if err != nil {
-		fmt.Println("Error parsing config file")
+		fmt.Println("Error parsing config file: ", err)
 		os.Exit(1)
 	}
+
 	rules.Loop()
 	rules.WaitGroup.Wait()
+	close(rules.InfoLoop)
 
 	if err != nil {
-		fmt.Println("Error while looping on rules")
+		fmt.Println("Error while looping on rules: ", err)
 		os.Exit(1)
 	}
 }
