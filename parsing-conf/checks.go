@@ -107,7 +107,7 @@ func checkDetection(cfg Config) error {
 		}
 
 		if d.MimeType == "" && d.Max_Age == 0 && d.Filename == "" && d.Yara_Rules_Dir == "" {
-			return fmt.Errorf("at least one of mime type, max age or filename is required")
+			return fmt.Errorf("at least one of `mimetype`, `max_age`, `filename` or `yara_rules_dir` must be set")
 		}
 		if d.MimeType != "" {
 			mimeIsSupported, err := detection.SupportType(d.MimeType)
