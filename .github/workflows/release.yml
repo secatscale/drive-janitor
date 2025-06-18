@@ -1,41 +1,53 @@
 name: Build and Release
-
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 jobs:
-  build-matrix:
-    runs-on: ubuntu-latest
-
+  build:
     strategy:
       matrix:
-        goos: [windows, linux, darwin]
-        goarch: [amd64, arm64]
-     
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        os:   [ubuntu-latest, macos-latest, windows-latest]
+        arch: [amd64, arm64]
+        include:
+          # Où trouver libyara ?
+          - os: ubuntu-latest
+            goos: linux
+            yara_install: sudo apt-get update && sudo apt-get install -y pkg-config libyara-dev yara
+          - os: macos-latest
+            goos: darwin
+            yara_install: brew install yara          # � Brew existe sur les runners macOS :contentReference[oaicite:1]{index=1}
+          - os: windows-latest
+            goos: windows
+            # YARA côté Windows via Chocolatey (lib + dll) :contentReference[oaicite:2]{index=2}
+            yara_install: choco install yara -y
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
           go-version: 1.24.1
-      
-      - name: Install YARA stuff
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libyara-dev pkg-config yara
-      
-      - name: Build binaries
+
+      - name: Install YARA
+        run: ${{ matrix.yara_install }}
+
+      # Pour des scripts identiques sur les trois OS
+      - name: Build
+        shell: bash
+        env:
+          GOOS:   ${{ matrix.goos }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 1        # go-yara en a besoin
         run: |
           mkdir -p dist
           EXT=""
-          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/drivejanitor-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./main.go
+          [[ "$GOOS" == "windows" ]] && EXT=".exe"
+          go build -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
-      - name: Upload binaries to release
+      - name: Upload artefacts
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
