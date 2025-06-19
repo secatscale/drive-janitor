@@ -87,27 +87,47 @@ jobs:
             pacman --noconfirm -S --needed mingw-w64-x86_64-yara-git
           fi
 
-      #------------------------------------------------------------
-      # Compilation
-      #------------------------------------------------------------
+# … (le haut du fichier ne change pas)
+
+    #--------------------------------------------------------------#
+    # Compilation de l’application
+    #--------------------------------------------------------------#
+
+    # --- Linux + macOS ------------------------------------------
       - name: Build ${{ matrix.id }}
-        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+        if: matrix.os != 'windows-latest'
+        shell: bash
         env:
-          GOOS:   ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
+          GOOS:        ${{ matrix.goos }}
+          GOARCH:      ${{ matrix.goarch }}
           CGO_ENABLED: 1
-          CC:         ${{ matrix.cc }}
-          PKG_CONFIG: ${{ matrix.pkgconfig }}
+          CC:          ${{ matrix.cc }}
+          PKG_CONFIG:  ${{ matrix.pkgconfig }}
         run: |
           set -euo pipefail
           mkdir -p dist
-          EXT=""
-          [[ "${GOOS}" == "windows" ]] && EXT=".exe"
+          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}" ./main.go
+
+      # --- Windows (MSYS2) ----------------------------------------
+      - name: Build ${{ matrix.id }} (windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        env:
+          GOOS:        ${{ matrix.goos }}
+          GOARCH:      ${{ matrix.goarch }}
+          CGO_ENABLED: 1
+          CC:          ${{ matrix.cc }}
+          PKG_CONFIG:  ${{ matrix.pkgconfig }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          EXT=".exe"
           go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
-      #------------------------------------------------------------
-      # Publication des binaires
-      #------------------------------------------------------------
+  # … (le reste du workflow reste inchangé)
+        #------------------------------------------------------------
+        # Publication des binaires
+        #------------------------------------------------------------
       - name: Upload binaries
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
