@@ -48,16 +48,13 @@ jobs:
             yara_install: brew install yara pkg-config
 
           # ── Windows / amd64 ──────────────────────────────────────
-          # - id: windows-amd64
-          #   os: windows-latest
-          #   goos: windows
-          #   goarch: amd64
-          #   # MinGW-w64 est déjà présent sur le runner ; vcpkg fournit libyara
-          #   cc:   x86_64-w64-mingw32-gcc
-          #   pkgconfig: pkg-config
-          #   yara_install: |
-          #     choco install -y ninja
-          #     vcpkg install --triplet x64-windows yara
+          - id: windows-amd64
+            os: windows-latest
+            goos: windows
+            goarch: amd64
+            cc: cl                   # MSVC
+            yara_install: vcpkg install --triplet x64-windows yara
+
 
     runs-on: ${{ matrix.os }}
 
