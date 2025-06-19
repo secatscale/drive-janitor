@@ -32,15 +32,14 @@ jobs:
             pkgconfig: pkg-config
             yara_install: brew install yara pkg-config
 
-          # ── Windows / amd64 (MinGW + MSYS2) ──────────────────────
+          # ── Windows / amd64 — MinGW + MSYS2 ──────────────────────
           - id: windows-amd64
             os: windows-latest
             goos: windows
             goarch: amd64
-            cc:   x86_64-w64-mingw32-gcc    # GCC du toolchain MinGW
+            cc:   x86_64-w64-mingw32-gcc        # GCC MinGW
             pkgconfig: pkg-config
-            # installation faite via l’action msys2/setup-msys2
-            yara_install: echo "YARA already provided by MSYS2"
+            yara_install: echo "handled by MSYS2"
 
     runs-on: ${{ matrix.os }}
 
@@ -52,7 +51,7 @@ jobs:
           go-version: 1.24.1
 
       #------------------------------------------------------------
-      # Linux + macOS : installation YARA via apt / brew
+      # Linux / macOS : installation YARA
       #------------------------------------------------------------
       - name: Install YARA toolchain
         if: matrix.os != 'windows-latest'
@@ -60,16 +59,18 @@ jobs:
         run: ${{ matrix.yara_install }}
 
       #------------------------------------------------------------
-      # Windows : installer MSYS2 + YARA + toolchain MinGW
+      # Windows : MSYS2 + paquets MinGW explicites (non interactifs)
       #------------------------------------------------------------
-      - name: Setup MSYS2 and YARA
+      - name: Setup MSYS2 (GCC + pkgconf + YARA)
         if: matrix.os == 'windows-latest'
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
+          path-type: minimal
           install: >-
-            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
             mingw-w64-x86_64-pkgconf
             mingw-w64-x86_64-yara
 
@@ -89,10 +90,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          EXT=""
-          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
+          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}" ./main.go
 
-      # Windows (MSYS2 shell pour bénéficier de GCC + pkg-config)
+      # Windows (shell MSYS2 pour disposer du toolchain)
       - name: Build ${{ matrix.id }} (windows)
         if: matrix.os == 'windows-latest'
         shell: msys2 {0}
