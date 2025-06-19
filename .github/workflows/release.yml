@@ -5,87 +5,100 @@ on:
 
 jobs:
 #--------------------------------------------------------------------
-# 1. Compilation des binaires (Linux / macOS / Windows)
+# 1. Compilation des binaires (Linux / macOS / Windows-MinGW)
 #--------------------------------------------------------------------
   build:
     strategy:
       fail-fast: false
       matrix:
         include:
-          # ── Linux / amd64 ────────────────────────────────────────
-          - id: linux-amd64
-            os: ubuntu-latest
-            goos: linux
-            goarch: amd64
-            cc:   gcc
-            pkgconfig: pkg-config
-            yara_install: |
-              sudo apt-get update
-              sudo apt-get install -y pkg-config libyara-dev yara
-
-          # ── macOS / arm64 ────────────────────────────────────────
-          - id: macos-arm64
-            os: macos-14
-            goos: darwin
-            goarch: arm64
-            cc:   clang
-            pkgconfig: pkg-config
-            yara_install: brew install yara pkg-config
-
-          # ── Windows / amd64 ──────────────────────────────────────
-          - id: windows-amd64
-            os: windows-latest
-            goos: windows
-            goarch: amd64
-            cc:   x86_64-w64-mingw32-gcc
-            pkgconfig: pkg-config
-            yara_install: echo "handled below"
+        # ── Linux / amd64 ───────────────────────────────────────────
+        - id: linux-amd64
+          os: ubuntu-latest
+          goos: linux
+          goarch: amd64
+          cc:   gcc
+          pkgconfig: pkg-config
+          yara_install: |
+            sudo apt-get update
+            sudo apt-get install -y pkg-config libyara-dev yara
+        # ── macOS / arm64 ──────────────────────────────────────────
+        - id: macos-arm64
+          os: macos-14
+          goos: darwin
+          goarch: arm64
+          cc:   clang
+          pkgconfig: pkg-config
+          yara_install: brew install yara pkg-config
+        # ── Windows / amd64  (MinGW + MSYS2) ───────────────────────
+        - id: windows-amd64
+          os: windows-latest
+          goos: windows
+          goarch: amd64
+          cc:   x86_64-w64-mingw32-gcc   # GCC du toolchain MinGW
+          pkgconfig: pkg-config
+          yara_install: echo "built from source just after MSYS2 setup"
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+    #--------------------------------------------------------------#
+    # Sources et Go
+    #--------------------------------------------------------------#
+    - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.24.1
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 1.24.1
 
-      #------------------------------------------------------------
-      # Linux / macOS : installation YARA
-      #------------------------------------------------------------
-      - name: Install YARA toolchain
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: ${{ matrix.yara_install }}
+    #--------------------------------------------------------------#
+    # Linux / macOS : YARA via apt / brew
+    #--------------------------------------------------------------#
+    - name: Install YARA toolchain
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: ${{ matrix.yara_install }}
 
-      #------------------------------------------------------------
-      # Windows : installer MSYS2 + gcc/make/pkgconf (sans YARA)
-      #------------------------------------------------------------
-      - name: Setup MSYS2 (GCC + pkgconf)
-        if: matrix.os == 'windows-latest'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          path-type: minimal
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
-            mingw-w64-x86_64-pkgconf
+    #--------------------------------------------------------------#
+    # Windows : MSYS2 + toolchain MinGW, puis compilation de YARA
+    #--------------------------------------------------------------#
+    - name: Setup MSYS2 + toolchain
+      if: matrix.os == 'windows-latest'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem:           MINGW64
+        update:            true
+        path-type:         minimal
+        cache:             true
+        install: >-
+          mingw-w64-x86_64-toolchain     # gcc, g++, ar, objdump…
+          mingw-w64-x86_64-make          # make
+          mingw-w64-x86_64-pkgconf       # pkg-config
+          mingw-w64-x86_64-cmake         # cmake (pour YARA >=4.5)
+          mingw-w64-x86_64-openssl       # dépendance YARA
+          git
 
-      #------------------------------------------------------------
-      # Windows : installer YARA (stable ou -git)
-      #------------------------------------------------------------
-      - name: Install YARA (mingw)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: |
-          set -e
-          if pacman -Si mingw-w64-x86_64-yara >/dev/null 2>&1; then
-            pacman --noconfirm -S --needed mingw-w64-x86_64-yara
-          else
-            pacman --noconfirm -S --needed mingw-w64-x86_64-yara-git
-          fi
+    - name: Build & install YARA from source (MinGW)
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      env:
+        MAKEFLAGS: "-j$(nproc)"
+      run: |
+        set -euo pipefail
+        # Récupération ultra-rapide
+        git clone --depth 1 https://github.com/VirusTotal/yara.git
+        cd yara
+        mkdir build && cd build
+        cmake .. -G"MSYS Makefiles" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/mingw64 \
+          -DBUILD_SHARED_LIBS=OFF      \
+          -DYARA_ENABLE_CUCKOO=OFF     \
+          -DYARA_ENABLE_MAGIC=OFF      \
+          -DYARA_ENABLE_DOTNET=OFF     \
+          -DYARA_ENABLE_PROFILING=OFF
+        make
+        make install                    # installe libyara.a, yara.pc, headers
 
 # … (le haut du fichier ne change pas)
 
@@ -94,87 +107,86 @@ jobs:
     #--------------------------------------------------------------#
 
     # --- Linux + macOS ------------------------------------------
-      - name: Build ${{ matrix.id }}
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        env:
-          GOOS:        ${{ matrix.goos }}
-          GOARCH:      ${{ matrix.goarch }}
-          CGO_ENABLED: 1
-          CC:          ${{ matrix.cc }}
-          PKG_CONFIG:  ${{ matrix.pkgconfig }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}" ./main.go
+    - name: Build ${{ matrix.id }}
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      env:
+        GOOS:        ${{ matrix.goos }}
+        GOARCH:      ${{ matrix.goarch }}
+        CGO_ENABLED: 1
+        CC:          ${{ matrix.cc }}
+        PKG_CONFIG:  ${{ matrix.pkgconfig }}
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}" ./main.go
 
-      # --- Windows (MSYS2) ----------------------------------------
-      - name: Build ${{ matrix.id }} (windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        env:
-          GOOS:        ${{ matrix.goos }}
-          GOARCH:      ${{ matrix.goarch }}
-          CGO_ENABLED: 1
-          CC:          ${{ matrix.cc }}
-          PKG_CONFIG:  ${{ matrix.pkgconfig }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          EXT=".exe"
-          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
+    # --- Windows (MSYS2) ----------------------------------------
+    - name: Build ${{ matrix.id }} (windows)
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      env:
+        GOOS:        ${{ matrix.goos }}
+        GOARCH:      ${{ matrix.goarch }}
+        CGO_ENABLED: 1
+        CC:          ${{ matrix.cc }}
+        PKG_CONFIG:  ${{ matrix.pkgconfig }}
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        EXT=".exe"
+        go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
-  # … (le reste du workflow reste inchangé)
-        #------------------------------------------------------------
-        # Publication des binaires
-        #------------------------------------------------------------
-      - name: Upload binaries
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# … (le reste du workflow reste inchangé)
+    #--------------------------------------------------------------#
+    # Publication GitHub Release
+    #--------------------------------------------------------------#
+    - name: Upload binaries
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#--------------------------------------------------------------------
-# 2. Packaging .pkg macOS (s’appuie sur le binaire produit ci-dessus)
-#--------------------------------------------------------------------
+#------------------------------------------------------------------
+# 2. Création du .pkg macOS (à partir du binaire produit)
+#------------------------------------------------------------------
   build-pkg-macos:
     needs: build
     runs-on: macos-14
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 1.24.1
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.24.1
+    - name: Install YARA
+      run: brew install yara pkg-config
 
-      - name: Install YARA
-        run: brew install yara pkg-config
+    - name: Build binary (darwin/arm64)
+      run: |
+        mkdir -p dist
+        GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/drivejanitor ./main.go
 
-      - name: Build binary (darwin/arm64)
-        run: |
-          mkdir -p dist
-          GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/drivejanitor ./main.go
+    - name: Build .pkg
+      run: |
+        PKGROOT=pkgroot
+        mkdir -p $PKGROOT/usr/local/bin
+        mkdir -p $PKGROOT/usr/local/etc/drivejanitor
+        cp dist/drivejanitor $PKGROOT/usr/local/bin/
+        cp config.yaml       $PKGROOT/usr/local/etc/drivejanitor/config.yaml
+        pkgbuild --root $PKGROOT \
+                 --identifier com.secatscale.drivejanitor \
+                 --version ${{ github.ref_name }} \
+                 --install-location / \
+                 dist/drivejanitor-darwin.pkg
 
-      - name: Build .pkg
-        run: |
-          PKGROOT=pkgroot
-          mkdir -p $PKGROOT/usr/local/bin
-          mkdir -p $PKGROOT/usr/local/etc/drivejanitor
-          cp dist/drivejanitor $PKGROOT/usr/local/bin/
-          cp config.yaml       $PKGROOT/usr/local/etc/drivejanitor/config.yaml
-          pkgbuild --root $PKGROOT \
-                   --identifier com.secatscale.drivejanitor \
-                   --version ${{ github.ref_name }} \
-                   --install-location / \
-                   dist/drivejanitor-darwin.pkg
-
-      - name: Upload .pkg
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/drivejanitor-darwin.pkg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload .pkg
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/drivejanitor-darwin.pkg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
