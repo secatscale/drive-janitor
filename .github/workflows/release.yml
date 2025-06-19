@@ -40,7 +40,7 @@ jobs:
 
           # ── macOS / arm64 ────────────────────────────────────────
           - id: macos-arm64
-            os: macos-14-arm64     # runner Apple Silicon natif
+            os: macos-14     # runner Apple Silicon natif
             goos: darwin
             goarch: arm64
             cc:   clang
@@ -100,7 +100,7 @@ jobs:
 #--------------------------------------------------------------------
   build-pkg-macos:
     needs: build                                   # attend le job build
-    runs-on: macos-14-arm64
+    runs-on: macos-14
 
     steps:
       - uses: actions/checkout@v4
