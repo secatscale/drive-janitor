@@ -89,7 +89,7 @@ jobs:
         git clone --depth 1 https://github.com/VirusTotal/yara.git
         cd yara
         mkdir build && cd build
-        cmake .. -G"MSYS Makefiles" \
+        cmake -S .. -B . -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=/mingw64 \
           -DBUILD_SHARED_LIBS=OFF      \
@@ -97,9 +97,8 @@ jobs:
           -DYARA_ENABLE_MAGIC=OFF      \
           -DYARA_ENABLE_DOTNET=OFF     \
           -DYARA_ENABLE_PROFILING=OFF
-        make
-        make install                    # installe libyara.a, yara.pc, headers
-
+        cmake --build 
+        cmake --install 
 # … (le haut du fichier ne change pas)
 
     #--------------------------------------------------------------#
