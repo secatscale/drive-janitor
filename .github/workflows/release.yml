@@ -82,14 +82,16 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: msys2 {0}
       env:
-        MAKEFLAGS: "-j$(nproc)"
+        MAKEFLAGS: "-j$(nproc)"        # pour make (si tu l’utilises ailleurs)
       run: |
         set -euo pipefail
-        # Récupération ultra-rapide
-        git clone --depth 1 https://github.com/VirusTotal/yara.git
+
+        # ── 1. Clone complet (shallow mais avec sous-modules) ───────────────
+        git clone --recursive --shallow-submodules https://github.com/VirusTotal/yara.git
         cd yara
-        mkdir build && cd build
-        cmake -S .. -B . -G"MSYS Makefiles" \
+
+        # ── 2. Configuration CMake ─────────────────────────────────────────
+        cmake -G"MSYS Makefiles" -S . -B build \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=/mingw64 \
           -DBUILD_SHARED_LIBS=OFF      \
@@ -97,8 +99,11 @@ jobs:
           -DYARA_ENABLE_MAGIC=OFF      \
           -DYARA_ENABLE_DOTNET=OFF     \
           -DYARA_ENABLE_PROFILING=OFF
-        cmake --build 
-        cmake --install 
+
+        # ── 3. Compilation & installation ──────────────────────────────────
+        cmake --build build --parallel $(nproc)
+        cmake --install build
+
 # … (le haut du fichier ne change pas)
 
     #--------------------------------------------------------------#
