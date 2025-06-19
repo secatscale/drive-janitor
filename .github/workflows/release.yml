@@ -32,14 +32,14 @@ jobs:
             pkgconfig: pkg-config
             yara_install: brew install yara pkg-config
 
-          # ── Windows / amd64 — MinGW + MSYS2 ──────────────────────
+          # ── Windows / amd64 ──────────────────────────────────────
           - id: windows-amd64
             os: windows-latest
             goos: windows
             goarch: amd64
-            cc:   x86_64-w64-mingw32-gcc        # GCC MinGW
+            cc:   x86_64-w64-mingw32-gcc
             pkgconfig: pkg-config
-            yara_install: echo "handled by MSYS2"
+            yara_install: echo "handled below"
 
     runs-on: ${{ matrix.os }}
 
@@ -59,9 +59,9 @@ jobs:
         run: ${{ matrix.yara_install }}
 
       #------------------------------------------------------------
-      # Windows : MSYS2 + paquets MinGW explicites (non interactifs)
+      # Windows : installer MSYS2 + gcc/make/pkgconf (sans YARA)
       #------------------------------------------------------------
-      - name: Setup MSYS2 (GCC + pkgconf + YARA)
+      - name: Setup MSYS2 (GCC + pkgconf)
         if: matrix.os == 'windows-latest'
         uses: msys2/setup-msys2@v2
         with:
@@ -72,15 +72,26 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
             mingw-w64-x86_64-pkgconf
-            mingw-w64-x86_64-yara
+
+      #------------------------------------------------------------
+      # Windows : installer YARA (stable ou -git)
+      #------------------------------------------------------------
+      - name: Install YARA (mingw)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          set -e
+          if pacman -Si mingw-w64-x86_64-yara >/dev/null 2>&1; then
+            pacman --noconfirm -S --needed mingw-w64-x86_64-yara
+          else
+            pacman --noconfirm -S --needed mingw-w64-x86_64-yara-git
+          fi
 
       #------------------------------------------------------------
       # Compilation
       #------------------------------------------------------------
-      # Linux / macOS
       - name: Build ${{ matrix.id }}
-        if: matrix.os != 'windows-latest'
-        shell: bash
+        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
         env:
           GOOS:   ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
@@ -90,22 +101,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}" ./main.go
-
-      # Windows (shell MSYS2 pour disposer du toolchain)
-      - name: Build ${{ matrix.id }} (windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        env:
-          GOOS:   ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 1
-          CC:         ${{ matrix.cc }}
-          PKG_CONFIG: ${{ matrix.pkgconfig }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          EXT=".exe"
+          EXT=""
+          [[ "${GOOS}" == "windows" ]] && EXT=".exe"
           go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
       #------------------------------------------------------------
