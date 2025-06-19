@@ -9,7 +9,7 @@ jobs:
 #--------------------------------------------------------------------
   build:
     strategy:
-      fail-fast: false            # n’annule pas les autres builds au 1er échec
+      fail-fast: false
       matrix:
         include:
           # ── Linux / amd64 ────────────────────────────────────────
@@ -23,38 +23,24 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y pkg-config libyara-dev yara
 
-          # ── Linux / arm64 (cross-compile) ────────────────────────
-          # - id: linux-arm64
-          #   os: ubuntu-latest
-          #   goos: linux
-          #   goarch: arm64
-          #   cc:   aarch64-linux-gnu-gcc
-          #   pkgconfig: aarch64-linux-gnu-pkg-config
-          #   yara_install: |
-          #     sudo dpkg --add-architecture arm64
-          #     sudo apt-get update
-          #     sudo apt-get install -y \
-          #       gcc-aarch64-linux-gnu \
-          #       pkg-config-aarch64-linux-gnu \
-          #       libyara-dev:arm64
-
           # ── macOS / arm64 ────────────────────────────────────────
           - id: macos-arm64
-            os: macos-14     # runner Apple Silicon natif
+            os: macos-14
             goos: darwin
             goarch: arm64
             cc:   clang
             pkgconfig: pkg-config
             yara_install: brew install yara pkg-config
 
-          # ── Windows / amd64 ──────────────────────────────────────
+          # ── Windows / amd64 (MinGW + MSYS2) ──────────────────────
           - id: windows-amd64
             os: windows-latest
             goos: windows
             goarch: amd64
-            cc: cl                   # MSVC
-            yara_install: vcpkg install --triplet x64-windows yara
-
+            cc:   x86_64-w64-mingw32-gcc    # GCC du toolchain MinGW
+            pkgconfig: pkg-config
+            # installation faite via l’action msys2/setup-msys2
+            yara_install: echo "YARA already provided by MSYS2"
 
     runs-on: ${{ matrix.os }}
 
@@ -65,11 +51,34 @@ jobs:
         with:
           go-version: 1.24.1
 
+      #------------------------------------------------------------
+      # Linux + macOS : installation YARA via apt / brew
+      #------------------------------------------------------------
       - name: Install YARA toolchain
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: ${{ matrix.yara_install }}
 
+      #------------------------------------------------------------
+      # Windows : installer MSYS2 + YARA + toolchain MinGW
+      #------------------------------------------------------------
+      - name: Setup MSYS2 and YARA
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-yara
+
+      #------------------------------------------------------------
+      # Compilation
+      #------------------------------------------------------------
+      # Linux / macOS
       - name: Build ${{ matrix.id }}
+        if: matrix.os != 'windows-latest'
         shell: bash
         env:
           GOOS:   ${{ matrix.goos }}
@@ -81,9 +90,27 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           EXT=""
-          [[ "${GOOS}" == "windows" ]] && EXT=".exe"
           go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
+      # Windows (MSYS2 shell pour bénéficier de GCC + pkg-config)
+      - name: Build ${{ matrix.id }} (windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        env:
+          GOOS:   ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 1
+          CC:         ${{ matrix.cc }}
+          PKG_CONFIG: ${{ matrix.pkgconfig }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          EXT=".exe"
+          go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
+
+      #------------------------------------------------------------
+      # Publication des binaires
+      #------------------------------------------------------------
       - name: Upload binaries
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
@@ -96,7 +123,7 @@ jobs:
 # 2. Packaging .pkg macOS (s’appuie sur le binaire produit ci-dessus)
 #--------------------------------------------------------------------
   build-pkg-macos:
-    needs: build                                   # attend le job build
+    needs: build
     runs-on: macos-14
 
     steps:
