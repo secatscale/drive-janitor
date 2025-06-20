@@ -68,7 +68,7 @@ jobs:
       with:
         msystem:           MINGW64
         update:            true
-        path-type:         minimal
+        path-type:         inherit 
         cache:             true
         install: >-
           make
