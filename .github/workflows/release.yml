@@ -74,37 +74,31 @@ jobs:
           mingw-w64-x86_64-toolchain     
           mingw-w64-x86_64-make          
           mingw-w64-x86_64-pkgconf       
-          mingw-w64-x86_64-cmake         
           mingw-w64-x86_64-openssl       
-          git
+          git autoconf automake libtool flex bison
 
     - name: Build & install YARA from source (MinGW)
       if: matrix.os == 'windows-latest'
       shell: msys2 {0}
       env:
-        MAKEFLAGS: "-j$(nproc)"        # pour make (si tu l’utilises ailleurs)
+        MAKEFLAGS: "-j$(nproc)"
       run: |
         set -euo pipefail
 
-        # ── 1. Clone complet (shallow mais avec sous-modules) ───────────────
-        git clone --recursive --shallow-submodules https://github.com/VirusTotal/yara.git
+        # ── 1. Clone complet (shallow mais avec sous-modules) ────────
+        git clone --recursive --depth 1 https://github.com/VirusTotal/yara.git
         cd yara
 
-        # ── 2. Configuration CMake ─────────────────────────────────────────
-        cmake -G"MSYS Makefiles" -S . -B build \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX=/mingw64 \
-          -DBUILD_SHARED_LIBS=OFF      \
-          -DYARA_ENABLE_CUCKOO=OFF     \
-          -DYARA_ENABLE_MAGIC=OFF      \
-          -DYARA_ENABLE_DOTNET=OFF     \
-          -DYARA_ENABLE_PROFILING=OFF
+        # ── 2. Prépare l’outillage Autotools ─────────────────────────
+        ./bootstrap.sh
 
-        # ── 3. Compilation & installation ──────────────────────────────────
-        cmake --build build --parallel $(nproc)
-        cmake --install build
-
-# … (le haut du fichier ne change pas)
+        # ── 3. Configuration + compilation + install static ─────────
+        ./configure --prefix=/mingw64 \
+                    --enable-static --disable-shared \
+                    --without-magic --without-dotnet --without-cuckoo \
+                    --disable-profiling
+        make
+        make install
 
     #--------------------------------------------------------------#
     # Compilation de l’application
