@@ -2,6 +2,7 @@ package action
 
 import (
 	"drive-janitor/action/log"
+	"drive-janitor/detection"
 	"drive-janitor/detection/checkage"
 	"drive-janitor/detection/checktype"
 	"fmt"
@@ -43,13 +44,13 @@ func (action *Action) GetLogFileName() error {
 	return nil
 }
 
-func (action *Action) SaveToFile() error {
+func (action *Action) SaveToFile(detectionInfo []detection.DetectionInfo) error {
 	err := os.MkdirAll(filepath.Dir(action.LogConfig.LogRepository), 0755)
 	if err != nil {
 		return fmt.Errorf("error creating log directory: %w", err)
 	}
 	// Enrich logs with additional information
-	action.EnrichLogs()
+	action.EnrichLogs(detectionInfo)
 	var logContent string
 	switch action.LogConfig.Format {
 	case LogFormatText:
@@ -106,7 +107,14 @@ func GenerateCSV(FilesInfo []FileInfo) string {
 }
 
 // Enrich fileInfo with timestamp, file type, and file age in days
-func (action *Action) EnrichLogs() {
+func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
+	for _, detection := range detectionInfo {
+		print("Detection: ", detection.Path, "\n")
+		if (detection.TypeMatch) {
+			print("We matched a file: ", detection.Path, "\n")
+			print("On is type: ", detection.Detection.MimeType, "\n")
+		}
+	}
 	for i, fileInfo := range action.LogConfig.FilesInfo {
 
 		fileType, err := checktype.GetType(fileInfo["path"])

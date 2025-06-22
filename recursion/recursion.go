@@ -34,7 +34,7 @@ func isInSkipDirectories(path string, skipDirectories []string) bool {
 	return slices.Contains(skipDirectories, path)
 }
 
-func (config *Recursion) Recurse(detection detection.DetectionArray, action *action.Action) error {
+func (config *Recursion) Recurse(detection *detection.DetectionArrayInfo, action *action.Action) error {
 	initialPathFs := os.DirFS(config.InitialPath)
 	err := fs.WalkDir(initialPathFs, ".", func(path string, entry fs.DirEntry, err error) error {
 		path = filepath.FromSlash(path)

@@ -15,12 +15,11 @@ recursions:
   - name: "recursion1"
     path: "./samples"
     max_depth: 4
-    path_to_ignore: ["./samples/ignore"]
 
 logs:
   - name: "logging1"
     log_format: "text"
-    log_repository: "./var/.log"
+    log_repository: "./var"
 
 actions:
   - name: "action1"

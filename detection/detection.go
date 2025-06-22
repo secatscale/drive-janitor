@@ -8,7 +8,8 @@ import (
 	"regexp"
 )
 
-func (detection Detection) IsDetected(path string) (bool, error) {
+// Look for a matching criteria on the file path for the current rules
+func (detection *Detection) IsDetected(path string, detectionInfos *[]DetectionInfo) (bool, error) {
 	// Call la function check type sur le path
 	typeMatch, err := detection.FileTypeMatching(path)
 	if err != nil {
@@ -28,6 +29,20 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	if (typeMatch && ageMatch && filenameMatch && yaraMatch) {
+		detectionInfo := DetectionInfo{
+			TypeMatch:     typeMatch,
+			AgeMatch:      ageMatch,
+			FilenameMatch: filenameMatch,
+			Path:		   path,
+			YaraMatch:     yaraMatch,
+			Detection:   detection,
+		}
+
+		*detectionInfos = append(*detectionInfos, detectionInfo)
+	}
+
 	return typeMatch && ageMatch && filenameMatch && yaraMatch, nil
 }
 
