@@ -9,7 +9,7 @@ import (
 )
 
 // Look for a matching criteria on the file path for the current rules
-func (detection Detection) IsDetected(path string) (bool, error) {
+func (detection *Detection) IsDetected(path string, detectionInfos *[]DetectionInfo) (bool, error) {
 	// Call la function check type sur le path
 	typeMatch, err := detection.FileTypeMatching(path)
 	if err != nil {
@@ -30,8 +30,19 @@ func (detection Detection) IsDetected(path string) (bool, error) {
 		return false, err
 	}
 
-	// Ducoup on pourrais save les infos des match dans une structure ou quoi ici et pas call enrich logs
-	// Genre une structure infoMatch avec le path et les info de match pour le enrich logs plus tard
+	if (typeMatch && ageMatch && filenameMatch && yaraMatch) {
+		detectionInfo := DetectionInfo{
+			TypeMatch:     typeMatch,
+			AgeMatch:      ageMatch,
+			FilenameMatch: filenameMatch,
+			Path:		   path,
+			YaraMatch:     yaraMatch,
+			Detection:   detection,
+		}
+
+		*detectionInfos = append(*detectionInfos, detectionInfo)
+	}
+
 	return typeMatch && ageMatch && filenameMatch && yaraMatch, nil
 }
 

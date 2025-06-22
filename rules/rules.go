@@ -2,13 +2,13 @@ package rules
 
 import (
 	"drive-janitor/action"
+	"drive-janitor/detection"
 	"fmt"
 	"log"
 	"os"
 )
 
-// Saving the log to a file for the current rules
-func saveLog(action *action.Action) {
+func saveLog(action *action.Action, detectionInfo *[]detection.DetectionInfo) {
 	err := action.GetLogFileName()
 	if err != nil {
 		fmt.Println("Error getting log file name:", err)
@@ -17,7 +17,7 @@ func saveLog(action *action.Action) {
 	}
 	fmt.Printf("Log file: %s\n", action.LogConfig.LogRepository)
 
-	err = action.SaveToFile()
+	err = action.SaveToFile(*detectionInfo)
 	if err != nil {
 		fmt.Println("Error saving log file:", err)
 		// Temporary exiting
@@ -47,8 +47,7 @@ func (r RulesInfo) Loop() {
 				panic(err) // be careful using panic in goroutines
 			}
 			if rules.Action.Log {
-				// Here we should take rules, not just action ..
-				saveLog(rules.Action)
+				saveLog(rules.Action, rules.Detection.DetectionInfo)
 			}
 		}(rules)
 		// This way we make sure to get info from the goroutine

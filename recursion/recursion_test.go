@@ -36,7 +36,7 @@ func generateTestFS(layers int, filesInfo map[int][]string) {
 // find a way to generate test files easily
 func TestRecursionComplex(t *testing.T) {
 	// Create a complex file structure with multiple files and deeper nesting
-	detection := detection.DetectionArray{
+	detection := detection.DetectionArrayInfo{
 		// Add detection criteria here if needed
 		// For example, you can set file types or age criteria
 	}
@@ -69,7 +69,7 @@ func TestRecursionComplex(t *testing.T) {
 			SkipDirectories: []string{},
 			BrowseFiles:     0,
 		}
-		err = config.Recurse(detection, &action)
+		err = config.Recurse(&detection, &action)
 		if err != nil {
 			t.Errorf("Error while browsing files: %v", err)
 		}
@@ -87,7 +87,7 @@ func TestRecursionComplex(t *testing.T) {
 			SkipDirectories: []string{},
 			BrowseFiles:     0,
 		}
-		err = config.Recurse(detection, &action)
+		err = config.Recurse(&detection, &action)
 		if err != nil {
 			t.Errorf("Error while browsing files: %v", err)
 		}
@@ -105,7 +105,7 @@ func TestRecursionComplex(t *testing.T) {
 			SkipDirectories: []string{},
 			BrowseFiles:     0,
 		}
-		err = config.Recurse(detection, &action)
+		err = config.Recurse(&detection, &action)
 		if err != nil {
 			t.Errorf("Error while browsing files: %v", err)
 		}
@@ -142,7 +142,7 @@ func TestRecursionComplex(t *testing.T) {
 			BrowseFiles:     0,
 		}
 
-		err = config.Recurse(detection, &action)
+		err = config.Recurse(&detection, &action)
 		if err != nil {
 			t.Errorf("Error while browsing files: %v", err)
 		}
@@ -165,7 +165,7 @@ func TestRecursionComplex(t *testing.T) {
 			SkipDirectories: []string{filepath.FromSlash("1/2")},
 			BrowseFiles:     0,
 		}
-		err = config.Recurse(detection, &action)
+		err = config.Recurse(&detection, &action)
 		if err != nil {
 			t.Errorf("Error while browsing files: %v", err)
 		}
