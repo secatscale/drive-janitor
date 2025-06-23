@@ -31,13 +31,13 @@ jobs:
           pkgconfig: pkg-config
           yara_install: brew install yara pkg-config
         # ── Windows / amd64  (MinGW + MSYS2) ───────────────────────
-        - id: windows-amd64
-          os: windows-latest
-          goos: windows
-          goarch: amd64
-          cc:   x86_64-w64-mingw32-gcc   # GCC du toolchain MinGW
-          pkgconfig: pkg-config
-          yara_install: echo "built from source just after MSYS2 setup"
+        # - id: windows-amd64
+        #   os: windows-latest
+        #   goos: windows
+        #   goarch: amd64
+        #   cc:   x86_64-w64-mingw32-gcc   # GCC du toolchain MinGW
+        #   pkgconfig: pkg-config
+        #   yara_install: echo "built from source just after MSYS2 setup"
 
     runs-on: ${{ matrix.os }}
 
@@ -62,44 +62,44 @@ jobs:
     #--------------------------------------------------------------#
     # Windows : MSYS2 + toolchain MinGW, puis compilation de YARA
     #--------------------------------------------------------------#
-    - name: Setup MSYS2 + toolchain
-      if: matrix.os == 'windows-latest'
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem:           MINGW64
-        update:            true
-        path-type:         inherit 
-        cache:             true
-        install: >-
-          make
-          mingw-w64-x86_64-toolchain     
-          mingw-w64-x86_64-make          
-          mingw-w64-x86_64-pkgconf       
-          mingw-w64-x86_64-openssl       
-          git autoconf automake libtool flex bison
+    # - name: Setup MSYS2 + toolchain
+    #   if: matrix.os == 'windows-latest'
+    #   uses: msys2/setup-msys2@v2
+    #   with:
+    #     msystem:           MINGW64
+    #     update:            true
+    #     path-type:         inherit 
+    #     cache:             true
+    #     install: >-
+    #       make
+    #       mingw-w64-x86_64-toolchain     
+    #       mingw-w64-x86_64-make          
+    #       mingw-w64-x86_64-pkgconf       
+    #       mingw-w64-x86_64-openssl       
+    #       git autoconf automake libtool flex bison
 
-    - name: Build & install YARA from source (MinGW)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      env:
-        MAKEFLAGS: "-j$(nproc)"
-      run: |
-        set -euo pipefail
+    # - name: Build & install YARA from source (MinGW)
+    #   if: matrix.os == 'windows-latest'
+    #   shell: msys2 {0}
+    #   env:
+    #     MAKEFLAGS: "-j$(nproc)"
+    #   run: |
+    #     set -euo pipefail
 
-        # ── 1. Clone complet (shallow mais avec sous-modules) ────────
-        git clone --recursive --depth 1 https://github.com/VirusTotal/yara.git
-        cd yara
+    #     # ── 1. Clone complet (shallow mais avec sous-modules) ────────
+    #     git clone --recursive --depth 1 https://github.com/VirusTotal/yara.git
+    #     cd yara
 
-        # ── 2. Prépare l’outillage Autotools ─────────────────────────
-        ./bootstrap.sh
+    #     # ── 2. Prépare l’outillage Autotools ─────────────────────────
+    #     ./bootstrap.sh
 
-        # ── 3. Configuration + compilation + install static ─────────
-        ./configure --prefix=/mingw64 \
-                    --enable-static --disable-shared \
-                    --without-magic --without-dotnet --without-cuckoo \
-                    --disable-profiling
-        make
-        make install
+    #     # ── 3. Configuration + compilation + install static ─────────
+    #     ./configure --prefix=/mingw64 \
+    #                 --enable-static --disable-shared \
+    #                 --without-magic --without-dotnet --without-cuckoo \
+    #                 --disable-profiling
+    #     make
+    #     make install
 
     #--------------------------------------------------------------#
     # Compilation de l’application
