@@ -137,7 +137,10 @@ jobs:
         cat <<'EOF' > scripts/postinstall
         #!/bin/bash
 
-        USER_HOME=$(dscl . -read /Users/$(whoami) NFSHomeDirectory | awk '{print $2}')
+        # Trouve l'utilisateur réel (console session) même si on est root
+        REAL_USER=$(stat -f "%Su" /dev/console)
+        USER_HOME=$(dscl . -read /Users/$REAL_USER NFSHomeDirectory | awk '{print $2}')
+
         BIN_DIR="$USER_HOME/.local/bin"
         CONF_DIR="$USER_HOME/.config/drivejanitor"
 
@@ -146,11 +149,12 @@ jobs:
 
         cp /private/tmp/drivejanitor-pkg/drivejanitor "$BIN_DIR/"
         cp /private/tmp/drivejanitor-pkg/config.yaml "$CONF_DIR/"
-
         chmod +x "$BIN_DIR/drivejanitor"
 
-        echo "✅ drivejanitor installed at $BIN_DIR/drivejanitor"
-        echo "📁 Config installed at $CONF_DIR/config.yaml"
+        echo "✅ drivejanitor installed for $REAL_USER"
+        echo "🗂️  Binary: $BIN_DIR/drivejanitor"
+        echo "⚙️  Config: $CONF_DIR/config.yaml"
+
 
         EOF
 
