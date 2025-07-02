@@ -15,7 +15,7 @@ On macOS, in order to scan the Trash directory, you must grant Full Disk Access 
 ## Installation
 
 You can download precompiled binairies in the release tab.
-For MacOs the executing the .pkg file will install to the current user $HOME/.local/bin/drivejanitor and the config to $HOME/.config/drivejanitor/config.yaml
+For MacOs the executing the .pkg file will install to the current user `HOME/.local/bin/drivejanitor` and the config to `$HOME/.config/drivejanitor/config.yaml`
 
 ## Usage
 
