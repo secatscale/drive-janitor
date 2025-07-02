@@ -126,18 +126,43 @@ jobs:
         mkdir -p dist
         GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/drivejanitor ./main.go
 
-    - name: Build .pkg
+    - name: Build .pkg (userland via postinstall)
       run: |
         PKGROOT=pkgroot
-        mkdir -p $PKGROOT/usr/local/bin
-        mkdir -p $PKGROOT/usr/local/etc/drivejanitor
-        cp dist/drivejanitor $PKGROOT/usr/local/bin/
-        cp config.yaml       $PKGROOT/usr/local/etc/drivejanitor/config.yaml
-        pkgbuild --root $PKGROOT \
-                 --identifier com.secatscale.drivejanitor \
-                 --version ${{ github.ref_name }} \
-                 --install-location / \
-                 dist/drivejanitor-darwin.pkg
+        mkdir -p $PKGROOT/private/tmp/drivejanitor-pkg
+        cp dist/drivejanitor $PKGROOT/private/tmp/drivejanitor-pkg/
+        cp config.yaml       $PKGROOT/private/tmp/drivejanitor-pkg/
+
+        mkdir -p scripts
+        cat <<'EOF' > scripts/postinstall
+        #!/bin/bash
+
+        USER_HOME=$(dscl . -read /Users/$(whoami) NFSHomeDirectory | awk '{print $2}')
+        BIN_DIR="$USER_HOME/.local/bin"
+        CONF_DIR="$USER_HOME/.config/drivejanitor"
+
+        mkdir -p "$BIN_DIR"
+        mkdir -p "$CONF_DIR"
+
+        cp /private/tmp/drivejanitor-pkg/drivejanitor "$BIN_DIR/"
+        cp /private/tmp/drivejanitor-pkg/config.yaml "$CONF_DIR/"
+
+        chmod +x "$BIN_DIR/drivejanitor"
+
+        echo "✅ drivejanitor installed at $BIN_DIR/drivejanitor"
+        echo "📁 Config installed at $CONF_DIR/config.yaml"
+
+        EOF
+
+        chmod +x scripts/postinstall
+
+        pkgbuild \
+          --root "$PKGROOT" \
+          --identifier com.secatscale.drivejanitor \
+          --version "${{ github.ref_name }}" \
+          --install-location "/" \
+          --scripts scripts \
+          dist/drivejanitor-darwin.pkg
 
     - name: Upload .pkg
       if: startsWith(github.ref, 'refs/tags/')
