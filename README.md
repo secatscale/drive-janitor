@@ -1,31 +1,44 @@
 # 🚗 drive-janitor
 
-A simple tool to help you detect and delete files on your disk based on their extension, age, or name — even those in the trash.
+Drive Janitor is a file detection and deletion tool, highly configurable via a `config.yaml` file.
+It can detect files based on MIME type, age, filename (regex), or YARA rules, recursively starting from one or more source directories.
 
-Run on Windows, Linux and MacOS.
+*Suggested use case:*
+-> Detect PDF files older than 30 days in the Trash.
 
-## Features
+Runs on Windows, Linux, and macOS.
 
-- 🧹 Detect and delete unwanted files by extension (MIME type), age (Ctime), or name (with regex support)
-- 🗑️ Clean files even from the trash
-- 🔒 Safe: dry-run mode to preview changes
-- ⚡ Fast and easy to use, with a simple YAML configuration
+### Important Notes
+
+On macOS, in order to scan the Trash directory, you must grant Full Disk Access to drive-janitor.
 
 ## Installation
 
-Clone the repository:
+You can download precompiled binairies in the release tab.
+
+Alternativily, clone the repository:
 
 ```bash
-	git clone https://github.com/yourusername/drive-janitor.git
+	git clone https://github.com/secatscale/drive-janitor.git
 	cd drive-janitor
 ```
 
-Need pkg-config :
+Drive janitor requires pkg-config and yara installation : 
 
+
+Linux installation 
+```
+	apt-get install libyara-dev yara pkg-config
+```
+
+MacOS installation
+```
+	brew install pkg-config yara
+```
+
+Windows installation
 ```
 	vcpkg install yara
-	apt-get install libyara-dev yara pkg-config
-	brew install pkg-config yara
 ```
 
 ## Usage
@@ -37,12 +50,23 @@ Need pkg-config :
 go run drive-janitor -config config.yaml
 ```
 
+or
+
+```
+./drive-janitor -config config.yaml
+```
+
+
+
 ## Configuration
 
 Edit `config.yaml` to specify:
 
 - **Detections**:  
-    Define which files to match in the `detections` section. Each detection uses a unique rule `name`, a `mimetype` (e.g., `"image/png"`), and optionally a `max_age` (in days) to filter files by age. Setting `max_age` to `-1` disables age filtering.
+    Define which files to match in the `detections` section. Each detection rule uses a unique rule `name`, and a detection parameters :
+    - `mimetype` (e.g., `"image/png"`) to filter files by MIME type. 
+    - `max_age` (in days) to filter files by age. Setting `max_age` to `-1`, or leaving it unspecified disable age filtering.
+    - `yara_rules_dir` to specify a folder where yara rules files are located. Files matching those rules are detected. Only one directory can be specified. 
 
 - **Recursions**:  
     Specify which directories to scan in the `recursions` section. Each recursion includes a rule `name`, a start `path` (e.g., `"./samples"`), a `max_depth` for how deep to scan, and an optional `path_to_ignore` list to exclude subdirectories.
