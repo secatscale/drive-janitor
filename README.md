@@ -15,48 +15,27 @@ On macOS, in order to scan the Trash directory, you must grant Full Disk Access 
 ## Installation
 
 You can download precompiled binairies in the release tab.
-
-Alternativily, clone the repository:
-
-```bash
-git clone https://github.com/secatscale/drive-janitor.git
-cd drive-janitor
-```
-
-Drive janitor requires pkg-config and yara installation : 
-
-
-Linux installation 
-```
-apt-get install libyara-dev yara pkg-config
-```
-
-MacOS installation
-```
-brew install pkg-config yara
-```
-
-Windows installation
-```
-vcpkg install yara
-```
+For MacOs the executing the .pkg file will install to the current user $HOME/.local/bin/drivejanitor and the config to $HOME/.config/drivejanitor/config.yaml
 
 ## Usage
 
 1. Configure your settings in `config.yaml`.
 2. Run the janitor:
 
-```bash
-go run drive-janitor -config config.yaml
+Windows
+```
+./drivejanitor-windows-amd64.exe -config config.yaml
 ```
 
-or
-
+Linux
 ```
-./drive-janitor -config config.yaml
+./drivejanitor-linux-amd64 -config config.yaml
 ```
 
-
+MacOS
+```
+drivejanitor -config config.yaml
+```
 
 ## Configuration
 
@@ -131,3 +110,4 @@ Pull requests are welcome!
 ---
 
 *Happy cleaning! 🧹*
+
