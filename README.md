@@ -3,10 +3,10 @@
 Drive Janitor is a file detection and deletion tool, highly configurable via a `config.yaml` file.
 It can detect files based on MIME type, age, filename (regex), or YARA rules, recursively starting from one or more source directories.
 
-*Suggested use case:*
--> Detect PDF files older than 30 days in the Trash.
-
 Runs on Windows, Linux, and macOS.
+
+**Suggested use case:**
+-> Detect PDF files older than 30 days in the Trash.
 
 ### Important Notes
 
@@ -19,8 +19,8 @@ You can download precompiled binairies in the release tab.
 Alternativily, clone the repository:
 
 ```bash
-	git clone https://github.com/secatscale/drive-janitor.git
-	cd drive-janitor
+git clone https://github.com/secatscale/drive-janitor.git
+cd drive-janitor
 ```
 
 Drive janitor requires pkg-config and yara installation : 
@@ -28,17 +28,17 @@ Drive janitor requires pkg-config and yara installation :
 
 Linux installation 
 ```
-	apt-get install libyara-dev yara pkg-config
+apt-get install libyara-dev yara pkg-config
 ```
 
 MacOS installation
 ```
-	brew install pkg-config yara
+brew install pkg-config yara
 ```
 
 Windows installation
 ```
-	vcpkg install yara
+vcpkg install yara
 ```
 
 ## Usage
