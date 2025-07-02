@@ -6,7 +6,7 @@ on:
 
 jobs:
 #--------------------------------------------------------------------
-# 1. Compilation des binaires (Linux / macOS / Windows depuis Linux)
+# 1. Compilation des binaires (Linux / macOS / Windows via Linux)
 #--------------------------------------------------------------------
   build:
     strategy:
@@ -23,7 +23,7 @@ jobs:
           yara_install: |
             sudo apt-get update
             sudo apt-get install -y pkg-config libyara-dev yara
-        # ── Windows / amd64 (cross-compilation) ─────────────────────
+        # ── Windows / amd64 (cross-compile) ─────────────────────────
         - id: windows-amd64
           os: ubuntu-latest
           goos: windows
@@ -32,15 +32,9 @@ jobs:
           pkgconfig: pkg-config
           yara_install: |
             sudo apt-get update
-            sudo apt-get install -y pkg-config libyara-dev yara gcc-mingw-w64
-        # ── macOS / arm64 ──────────────────────────────────────────
-        - id: macos-arm64
-          os: macos-14
-          goos: darwin
-          goarch: arm64
-          cc: clang
-          pkgconfig: pkg-config
-          yara_install: brew install yara pkg-config
+            sudo apt-get install -y \
+              pkg-config gcc-mingw-w64 \
+              autoconf automake libtool flex bison git make
 
     runs-on: ${{ matrix.os }}
 
@@ -55,14 +49,35 @@ jobs:
         go-version: 1.24.1
 
     #--------------------------------------------------------------#
-    # Installation de YARA et dépendances
+    # Installation YARA (Linux & macOS) / Compilation (Windows)
     #--------------------------------------------------------------#
-    - name: Install YARA toolchain
+    - name: Install YARA prerequisites
       shell: bash
       run: ${{ matrix.yara_install }}
 
+    - name: Build YARA for Windows (cross-compile)
+      if: matrix.goos == 'windows'
+      shell: bash
+      run: |
+        set -euo pipefail
+        git clone --recursive --depth 1 https://github.com/VirusTotal/yara.git
+        cd yara
+        ./bootstrap.sh
+        ./configure \
+          --host=x86_64-w64-mingw32 \
+          --enable-static \
+          --disable-shared \
+          --without-magic \
+          --without-dotnet \
+          --without-cuckoo \
+          --disable-profiling \
+          --prefix=/usr/local/yara-windows
+        make -j$(nproc)
+        sudo make install
+        echo "PKG_CONFIG_PATH=/usr/local/yara-windows/lib/pkgconfig" >> $GITHUB_ENV
+
     #--------------------------------------------------------------#
-    # Compilation multiplateforme
+    # Compilation
     #--------------------------------------------------------------#
     - name: Build ${{ matrix.id }}
       shell: bash
@@ -80,7 +95,7 @@ jobs:
         go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
 
     #--------------------------------------------------------------#
-    # Upload des binaires vers GitHub Release
+    # Upload vers GitHub Release
     #--------------------------------------------------------------#
     - name: Upload binaries
       if: startsWith(github.ref, 'refs/tags/')
@@ -90,9 +105,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#--------------------------------------------------------------------
-# 2. Création du .pkg macOS à partir du binaire
-#--------------------------------------------------------------------
+#------------------------------------------------------------------
+# 2. Création du .pkg macOS (à partir du binaire produit)
+#------------------------------------------------------------------
   build-pkg-macos:
     needs: build
     runs-on: macos-14
