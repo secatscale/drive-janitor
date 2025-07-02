@@ -20,9 +20,9 @@ You can download precompiled binairies in the Releases tab.
 
 On macOS, simply run the .pkg installer.
 It will install:
-- The binary to: ~/.local/bin/drivejanitor
-- The default config file to: ~/.config/drivejanitor/config.yaml
-➡️ Make sure ~/.local/bin is in your PATH. If not, you can add it by appending this line to your shell profile (~/.zshrc, ~/.bash_profile, etc.):
+- The binary to: `~/.local/bin/drivejanitor`
+- The default config file to: `~/.config/drivejanitor/config.yaml`
+➡️ Make sure `~/.local/bin` is in your PATH. If not, you can add it by appending this line to your shell profile (`~/.zshrc`, `~/.bash_profile`, etc.):
 ```export PATH="$HOME/.local/bin:$PATH"```
 
 ### Linux and Windows
