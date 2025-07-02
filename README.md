@@ -71,7 +71,7 @@ Edit `config.yaml` to specify:
 - **Rules**:  
     Connect detections, recursions, and actions in the `rules` section. Each rule specifies which detections, recursion, and action to use for processing files.
 
-⚡ All paths in the configuration supports `$trash`, `$download` ou `$home` 
+⚡ All paths in the configuration supports `$trash`, `$download` or `$home` 
 
 Example:
 ```yaml
