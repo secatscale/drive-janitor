@@ -3,11 +3,10 @@ package action
 import (
 	"drive-janitor/action/log"
 	"drive-janitor/detection"
-	"drive-janitor/detection/checkage"
-	"drive-janitor/detection/checktype"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -16,7 +15,6 @@ func (action *Action) TakeAction(filePath string, detectionsMatch []string) {
 		// TODO: Implement delete action
 		// os.Remove(filePath)
 	}
-
 	detectedBy := buildDetectedByString(detectionsMatch)
 
 	if action.Log {
@@ -122,27 +120,21 @@ func GenerateCSV(FilesInfo []FileInfo) string {
 
 // Enrich fileInfo with timestamp, file type, and file age in days
 func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
-	for _, detection := range detectionInfo {
-		print("Detection: ", detection.Path, "\n")
-		if (detection.TypeMatch) {
-			print("We matched a file: ", detection.Path, "\n")
-			print("On is type: ", detection.Detection.MimeType, "\n")
-		}
-	}
 	for i, fileInfo := range action.LogConfig.FilesInfo {
+		for _, detection := range detectionInfo {
+			if (strings.Contains(fileInfo["detectedBy"], detection.Detection.Name) && (fileInfo["path"] == detection.Path)) {
 
-		fileType, err := checktype.GetType(fileInfo["path"])
-		if err != nil {
-			fileType = "unknown"
+				// Here we enrich but only for the first detection that matches
+				// Would be bette to have a detection per log, and not do like combinaition of detections in log
+				fileType := detection.Detection.MimeType
+				fileAge := detection.Detection.Age
+
+				fileInfo["file_type"] = string(fileType)
+				fileInfo["file_age"] = fmt.Sprintf("%d days", fileAge)
+				action.LogConfig.FilesInfo[i] = fileInfo
+				break
+
+			}
 		}
-
-		fileInfo["file_type"] = string(fileType)
-		fileAge, err := checkage.GetAge(fileInfo["path"])
-		if err != nil {
-			fileAge = -1 // Indicate an error in age calculation
-		}
-		fileInfo["file_age"] = fmt.Sprintf("%d days", fileAge)
-
-		action.LogConfig.FilesInfo[i] = fileInfo
 	}
 }
