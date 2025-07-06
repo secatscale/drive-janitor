@@ -2,12 +2,13 @@ name: TestMain
 version: 1.0.0
 
 detections:
-  - name: "detection1"
+  - name: "detection_png"
     mimetype: "image/png"
-  - name: "detection2"
+  - name: "detection_pdf_older_than_30_days"
     mimetype: "application/pdf"
-  - name: "detection3"
-    mimetype: "application/pdf"
+    max_age: 30
+  - name: "detection_yara"
+    yara_rules_dir: "./detection/checkyara/yararules"
 
 
 recursions:
@@ -28,5 +29,5 @@ actions:
 rules:
   - name: "FINALRULE1"
     action: "action1"
-    detection: ["detection1", "detection2", "detection3"]
+    detection: ["detection_png", "detection_pdf_older_than_30_days", "detection_yara"]
     recursion: "recursion1"

@@ -30,14 +30,14 @@ func (detection *Detection) IsDetected(path string, detectionInfos *[]DetectionI
 		return false, err
 	}
 
-	if (typeMatch && ageMatch && filenameMatch && yaraMatch) {
+	if typeMatch && ageMatch && filenameMatch && yaraMatch {
 		detectionInfo := DetectionInfo{
 			TypeMatch:     typeMatch,
 			AgeMatch:      ageMatch,
 			FilenameMatch: filenameMatch,
-			Path:		   path,
+			Path:          path,
 			YaraMatch:     yaraMatch,
-			Detection:   detection,
+			Detection:     detection,
 		}
 
 		*detectionInfos = append(*detectionInfos, detectionInfo)
@@ -74,7 +74,7 @@ func (detection Detection) FileAgeMatching(path string) (bool, error) {
 		return false, err
 	}
 	machingAge := detection.Age
-	if age > machingAge {
+	if age < machingAge {
 		return false, nil
 	}
 	// Call la function check age sur le path
