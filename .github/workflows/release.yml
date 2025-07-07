@@ -2,40 +2,176 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'  
+    tags: ['v*']
 
 jobs:
+#--------------------------------------------------------------------
+# 1. Compilation des binaires (Linux / macOS / Windows via Linux)
+#--------------------------------------------------------------------
   build:
-    runs-on: ubuntu-latest
-
     strategy:
+      fail-fast: false
       matrix:
-        goos: [windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64  # Pas pertinent
+        include:
+        # ── Linux / amd64 ───────────────────────────────────────────
+        - id: linux-amd64
+          os: ubuntu-latest
+          goos: linux
+          goarch: amd64
+          cc: gcc
+          pkgconfig: pkg-config
+          yara_install: |
+            sudo apt-get update
+            sudo apt-get install -y pkg-config libyara-dev yara
+        # ── Windows / amd64 (cross-compile) ─────────────────────────
+        - id: windows-amd64
+          os: ubuntu-latest
+          goos: windows
+          goarch: amd64
+          cc: x86_64-w64-mingw32-gcc
+          pkgconfig: pkg-config
+          yara_install: |
+            sudo apt-get update
+            sudo apt-get install -y \
+              pkg-config gcc-mingw-w64 \
+              autoconf automake libtool flex bison git make
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    #--------------------------------------------------------------#
+    # Sources et Go
+    #--------------------------------------------------------------#
+    - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.24.1  # Ou la version que tu utilises dans go.mod
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 1.24.1
 
-      - name: Build binary
-        run: |
-          mkdir -p dist
-          EXT=""
-          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/drive-janitor-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./main.go
+    #--------------------------------------------------------------#
+    # Installation YARA (Linux & macOS) / Compilation (Windows)
+    #--------------------------------------------------------------#
+    - name: Install YARA prerequisites
+      shell: bash
+      run: ${{ matrix.yara_install }}
 
-      - name: Upload binaries to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build YARA for Windows (cross-compile)
+      if: matrix.goos == 'windows'
+      shell: bash
+      run: |
+        set -euo pipefail
+        git clone --recursive --depth 1 https://github.com/VirusTotal/yara.git
+        cd yara
+        ./bootstrap.sh
+        ./configure \
+          --host=x86_64-w64-mingw32 \
+          --enable-static \
+          --disable-shared \
+          --without-magic \
+          --without-dotnet \
+          --without-cuckoo \
+          --disable-profiling \
+          --prefix=/usr/local/yara-windows
+        make -j$(nproc)
+        sudo make install
+        echo "PKG_CONFIG_PATH=/usr/local/yara-windows/lib/pkgconfig" >> $GITHUB_ENV
+
+    #--------------------------------------------------------------#
+    # Compilation
+    #--------------------------------------------------------------#
+    - name: Build ${{ matrix.id }}
+      shell: bash
+      env:
+        GOOS:        ${{ matrix.goos }}
+        GOARCH:      ${{ matrix.goarch }}
+        CGO_ENABLED: 1
+        CC:          ${{ matrix.cc }}
+        PKG_CONFIG:  ${{ matrix.pkgconfig }}
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        EXT=""
+        if [ "${GOOS}" = "windows" ]; then EXT=".exe"; fi
+        go build -v -trimpath -o "dist/drivejanitor-${GOOS}-${GOARCH}${EXT}" ./main.go
+
+    #--------------------------------------------------------------#
+    # Upload vers GitHub Release
+    #--------------------------------------------------------------#
+    - name: Upload binaries
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#------------------------------------------------------------------
+# 2. Création du .pkg macOS (à partir du binaire produit)
+#------------------------------------------------------------------
+  build-pkg-macos:
+    needs: build
+    runs-on: macos-14
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 1.24.1
+
+    - name: Install YARA
+      run: brew install yara pkg-config
+
+    - name: Build binary (darwin/arm64)
+      run: |
+        mkdir -p dist
+        GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/drivejanitor ./main.go
+
+    - name: Build .pkg (userland via postinstall)
+      run: |
+        PKGROOT=pkgroot
+        mkdir -p $PKGROOT/private/tmp/drivejanitor-pkg
+        cp dist/drivejanitor $PKGROOT/private/tmp/drivejanitor-pkg/
+        cp config.yaml       $PKGROOT/private/tmp/drivejanitor-pkg/
+
+        mkdir -p scripts
+        cat <<'EOF' > scripts/postinstall
+        #!/bin/bash
+
+        # Trouve l'utilisateur réel (console session) même si on est root
+        REAL_USER=$(stat -f "%Su" /dev/console)
+        USER_HOME=$(dscl . -read /Users/$REAL_USER NFSHomeDirectory | awk '{print $2}')
+
+        BIN_DIR="$USER_HOME/.local/bin"
+        CONF_DIR="$USER_HOME/.config/drivejanitor"
+
+        mkdir -p "$BIN_DIR"
+        mkdir -p "$CONF_DIR"
+
+        cp /private/tmp/drivejanitor-pkg/drivejanitor "$BIN_DIR/"
+        cp /private/tmp/drivejanitor-pkg/config.yaml "$CONF_DIR/"
+        chmod +x "$BIN_DIR/drivejanitor"
+
+        echo "✅ drivejanitor installed for $REAL_USER"
+        echo "🗂️  Binary: $BIN_DIR/drivejanitor"
+        echo "⚙️  Config: $CONF_DIR/config.yaml"
+
+
+        EOF
+
+        chmod +x scripts/postinstall
+
+        pkgbuild \
+          --root "$PKGROOT" \
+          --identifier com.secatscale.drivejanitor \
+          --version "${{ github.ref_name }}" \
+          --install-location "/" \
+          --scripts scripts \
+          dist/drivejanitor-darwin.pkg
+
+    - name: Upload .pkg
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/drivejanitor-darwin.pkg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
