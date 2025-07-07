@@ -1,12 +1,12 @@
 # 🚗 drive-janitor
 
 Drive Janitor is a file detection and deletion tool, highly configurable via a `config.yaml` file.
-It can detect files based on MIME type, age, filename (regex), or YARA rules, recursively starting from one or more source directories.
+It can detect files based on MIME type, age, filename (with regex support), or YARA rules, recursively starting from one or more source directories.
 
 Runs on Windows, Linux, and macOS.
 
 **Suggested use case:**
--> Detect PDF files older than 30 days in the Trash.
+-> Detect and delete PDF files older than 30 days in the Trash.
 
 ### Important Notes
 
