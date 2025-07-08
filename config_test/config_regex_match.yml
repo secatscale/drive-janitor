@@ -20,7 +20,7 @@ logs:
 
 actions:
   - name: "action1"
-    delete: true
+    delete: false
     log: "logging1"
 
 rules:

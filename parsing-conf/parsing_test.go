@@ -46,7 +46,7 @@ func TestParseYAMLFile1(t *testing.T) {
 		detection2 := cfg.Detections[1]
 		assertCorrectyamlstring(t, "xxxx2", detection2.Name)
 		assertCorrectyamlstring(t, "application/pdf", detection2.MimeType)
-		assertCorrectyamlstring(t, "pipi.prout", detection2.Filename)
+		assertCorrectyamlstring(t, "aya.aya", detection2.Filename)
 		assertCorrectYAMLint(t, 10, detection2.Max_Age)
 	})
 	t.Run("TestParseYAMLFile2", func(t *testing.T) {

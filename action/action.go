@@ -12,16 +12,21 @@ import (
 )
 
 func (action *Action) TakeAction(filePath string, detectionsMatch []string) {
-	if action.Delete {
-		// TODO: Implement delete action
-		// os.Remove(filePath)
-	}
 
 	detectedBy := buildDetectedByString(detectionsMatch)
 
 	if action.Log {
 		FileInfo := FileInfo{"detectedBy": detectedBy, "path": filePath}
 		action.LogConfig.FilesInfo = append(action.LogConfig.FilesInfo, FileInfo)
+	}
+
+	// TODO: add a FileInfo Log "deleted" true/false
+	if action.Delete {
+		if err := os.Remove(filePath); err != nil {
+			fmt.Printf("Error deleting file %s: %v\n", filePath, err)
+		} else {
+			fmt.Printf("File %s deleted successfully.\n", filePath)
+		}
 	}
 }
 
@@ -123,11 +128,11 @@ func GenerateCSV(FilesInfo []FileInfo) string {
 // Enrich fileInfo with timestamp, file type, and file age in days
 func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
 	for _, detection := range detectionInfo {
-		print("Detection: ", detection.Path, "\n")
-		if (detection.TypeMatch) {
-			print("We matched a file: ", detection.Path, "\n")
-			print("On is type: ", detection.Detection.MimeType, "\n")
-		}
+		print("Detected: ", detection.Path, "\n")
+		//	if detection.TypeMatch {
+		//		print("We matched a file: ", detection.Path, "\n")
+		//		print("On is type: ", detection.Detection.MimeType, "\n")
+		//	}
 	}
 	for i, fileInfo := range action.LogConfig.FilesInfo {
 

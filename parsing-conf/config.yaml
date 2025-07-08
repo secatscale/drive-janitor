@@ -9,7 +9,7 @@ detections:
 
   - name: "xxxx2"
     mime_type: image/png
-    filename: 'pipi.prout'
+    filename: 'aya.aya'
     max_age: 2 #years  to be defined? 
 
 recursions:

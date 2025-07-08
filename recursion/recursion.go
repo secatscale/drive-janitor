@@ -22,7 +22,7 @@ func getDepth(path string) int {
 }
 
 func isAboveMaxDepth(path string, maxDepth int) bool {
-	if maxDepth < 0 {
+	if maxDepth <= 0 {
 		return false
 	}
 	return getDepth(path) > maxDepth

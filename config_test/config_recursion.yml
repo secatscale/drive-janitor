@@ -12,7 +12,7 @@ recursions:
 
 actions:
   - name: "action1"
-    delete: true
+    delete: false
 
 rules:
   - name: "FINALRULE1"
