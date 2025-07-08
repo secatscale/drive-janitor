@@ -44,7 +44,7 @@ func fillDetection(cfgDetectionList []ConfigDetection, currentDetectionListName 
 			}
 		}
 		currentRules.Detection = &detection.DetectionArrayInfo{
-			Detections:      detectionArray,
+			Detections:    detectionArray,
 			DetectionInfo: &[]detection.DetectionInfo{},
 		}
 	}

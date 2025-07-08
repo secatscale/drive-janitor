@@ -9,17 +9,17 @@ type Detection struct {
 }
 
 type DetectionArrayInfo struct {
-	Detections DetectionArray
+	Detections    DetectionArray
 	DetectionInfo *[]DetectionInfo
 }
 
 type DetectionArray []Detection
 
 type DetectionInfo struct {
-	TypeMatch bool
-	AgeMatch  bool
+	TypeMatch     bool
+	AgeMatch      bool
 	FilenameMatch bool
-	YaraMatch bool
-	Path string
-	Detection *Detection
+	YaraMatch     bool
+	Path          string
+	Detection     *Detection
 }
