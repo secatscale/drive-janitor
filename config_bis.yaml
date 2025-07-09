@@ -1,0 +1,55 @@
+name: TestMain
+version: 1.0.0
+
+detections:
+  - name: "detection_webp_elephant"
+    mimetype: "image/webp"
+    filename: "(?i).*elephant.*"
+
+  - name: "detection_pdf_older_than_30_days"
+    mimetype: "application/pdf"
+    max_age: 30
+
+  - name: "detection_yara"
+    yara_rules_dir: "./detection/checkyara/yararules"
+
+recursions:
+  - name: "recursion1"
+    path: "$home/Documents/ecole2600/drive-janitor"
+    max_depth: 10
+
+  - name: "recurse_from_trash"
+    path: "$trash"
+
+  - name: "recurse_from_download"
+    path: "$download"
+
+actions:
+  - name: "action_log"
+    delete: false 
+    log: "logging1"
+
+  - name: "action_delete"
+    delete: true
+    log: "logging1"
+
+logs:
+  - name: "logging1"
+    log_format: "json"
+    log_repository: "./.log"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action_log"
+    detection: ["detection_webp_elephant", "detection_pdf_older_than_30_days", "detection_yara"]
+    recursion: "recursion1"
+
+  - name: "FINALRULE2"
+    action: "action_log"
+    detection: ["detection_pdf_older_than_30_days"]
+    recursion: "recurse_from_download"
+
+  - name: "FINALRULE3"
+    action: "action_delete"
+    detection: ["detection_yara"]
+    recursion: "recurse_from_trash"

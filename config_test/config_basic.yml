@@ -1,0 +1,29 @@
+name: TestBasicLog
+version: 1.0.0
+
+detections:
+  - name: "detection1"
+    mimetype: "image/png"
+
+  - name: "detection2"
+    mimetype: "application/pdf"
+
+recursions:
+  - name: "recursion1"
+    path: "./samples"
+
+logs:
+  - name: "logging1"
+    log_format: "json"
+    log_repository: "./var/.log"
+
+actions:
+  - name: "action1"
+    delete: false 
+    log: "logging1"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2"]
+    recursion: "recursion1"

@@ -1,0 +1,21 @@
+name: TestRecursionSkipDirectory
+version: 1.0.0
+
+detections:
+    - name: "detection1"
+      mimetype: "video/mp4"
+
+recursions:
+  - name: "recursion1"
+    path: "./samples"
+    path_to_ignore: ["./samples/ignore"]
+
+actions:
+  - name: "action1"
+    delete: false
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1"]
+    recursion: "recursion1"
