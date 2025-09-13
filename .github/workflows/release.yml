@@ -108,7 +108,7 @@ jobs:
 #------------------------------------------------------------------
 # 2. Création du .pkg macOS + binaire nommés en arm64
 #------------------------------------------------------------------
-build-pkg-macos:
+  build-pkg-macos:
     runs-on: macos-14
 
     steps:
