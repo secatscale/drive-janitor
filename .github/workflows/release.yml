@@ -106,72 +106,81 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 #------------------------------------------------------------------
-# 2. Création du .pkg macOS
+# 2. Création du .pkg macOS + binaire nommés en arm64
 #------------------------------------------------------------------
-  build-pkg-macos:
-    
-    runs-on: macos-14
+    build-pkg-macos:
+      runs-on: macos-14
 
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: 1.24.1
+      steps:
+      - uses: actions/checkout@v4
 
-    - name: Install YARA
-      run: brew install yara pkg-config
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.1
 
-    - name: Build binary (darwin/arm64)
-      run: |
-        mkdir -p dist
-        GOOS=darwin GOARCH=arm64 go build -trimpath -o dist/drivejanitor ./main.go
+      - name: Install YARA
+        run: brew install yara pkg-config
 
-    - name: Build .pkg (userland via postinstall)
-      run: |
-        PKGROOT=pkgroot
-        mkdir -p $PKGROOT/private/tmp/drivejanitor-pkg
-        cp dist/drivejanitor $PKGROOT/private/tmp/drivejanitor-pkg/
-        cp config.yaml       $PKGROOT/private/tmp/drivejanitor-pkg/
+      - name: Build binary (darwin/arm64)
+        env:
+          GOOS: darwin
+          GOARCH: arm64
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # Produit: dist/drivejanitor-darwin-arm64
+          go build -trimpath -o dist/drivejanitor-darwin-arm64 ./main.go
+          chmod +x dist/drivejanitor-darwin-arm64
 
-        mkdir -p scripts
-        cat <<'EOF' > scripts/postinstall
-        #!/bin/bash
+      - name: Build .pkg (userland via postinstall)
+        run: |
+          set -euo pipefail
+          BINARY="dist/drivejanitor-darwin-arm64"
+          PKGROOT="pkgroot"
+          mkdir -p "$PKGROOT/private/tmp/drivejanitor-pkg"
+          # On copie le binaire en le renommant "drivejanitor" pour le postinstall
+          cp "$BINARY" "$PKGROOT/private/tmp/drivejanitor-pkg/drivejanitor"
+          cp config.yaml "$PKGROOT/private/tmp/drivejanitor-pkg/"
 
-        # Trouve l'utilisateur réel (console session) même si on est root
-        REAL_USER=$(stat -f "%Su" /dev/console)
-        USER_HOME=$(dscl . -read /Users/$REAL_USER NFSHomeDirectory | awk '{print $2}')
+          mkdir -p scripts
+          cat <<'EOF' > scripts/postinstall
+          #!/bin/bash
+          set -euo pipefail
 
-        BIN_DIR="$USER_HOME/.local/bin"
-        CONF_DIR="$USER_HOME/.config/drivejanitor"
+          # Trouve l'utilisateur réel (console session) même si on est root
+          REAL_USER=$(stat -f "%Su" /dev/console)
+          USER_HOME=$(dscl . -read /Users/$REAL_USER NFSHomeDirectory | awk '{print $2}')
 
-        mkdir -p "$BIN_DIR"
-        mkdir -p "$CONF_DIR"
+          BIN_DIR="$USER_HOME/.local/bin"
+          CONF_DIR="$USER_HOME/.config/drivejanitor"
 
-        cp /private/tmp/drivejanitor-pkg/drivejanitor "$BIN_DIR/"
-        cp /private/tmp/drivejanitor-pkg/config.yaml "$CONF_DIR/"
-        chmod +x "$BIN_DIR/drivejanitor"
+          mkdir -p "$BIN_DIR" "$CONF_DIR"
+          cp /private/tmp/drivejanitor-pkg/drivejanitor "$BIN_DIR/"
+          cp /private/tmp/drivejanitor-pkg/config.yaml "$CONF_DIR/"
+          chmod +x "$BIN_DIR/drivejanitor"
 
-        echo "✅ drivejanitor installed for $REAL_USER"
-        echo "🗂️  Binary: $BIN_DIR/drivejanitor"
-        echo "⚙️  Config: $CONF_DIR/config.yaml"
+          echo "✅ drivejanitor installed for $REAL_USER"
+          echo "🗂️  Binary: $BIN_DIR/drivejanitor"
+          echo "⚙️  Config: $CONF_DIR/config.yaml"
+          EOF
+          chmod +x scripts/postinstall
 
+          # Produit: dist/drivejanitor-darwin-arm64.pkg
+          pkgbuild \
+            --root "$PKGROOT" \
+            --identifier com.secatscale.drivejanitor \
+            --version "${{ github.ref_name }}" \
+            --install-location "/" \
+            --scripts scripts \
+            "dist/drivejanitor-darwin-arm64.pkg"
 
-        EOF
+      - name: Upload darwin artifacts (.pkg + binaire)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/drivejanitor-darwin-arm64.pkg
+            dist/drivejanitor-darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        chmod +x scripts/postinstall
-
-        pkgbuild \
-          --root "$PKGROOT" \
-          --identifier com.secatscale.drivejanitor \
-          --version "${{ github.ref_name }}" \
-          --install-location "/" \
-          --scripts scripts \
-          dist/drivejanitor-darwin.pkg
-
-    - name: Upload .pkg
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2
-      with:
-        files: dist/drivejanitor-darwin.pkg
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
