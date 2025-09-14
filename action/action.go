@@ -196,6 +196,7 @@ func (fileInfo FileInfo) WindowsTrashSpecialEnrich(trashPath string) {
 		if err != nil {
 			return
 		}
-		fileInfo["path"] = infoFile.OriginalPath
+		pathToLog := dir + filepath.Base(infoFile.OriginalPath)
+		fileInfo["path"] = pathToLog
 	}
 }
