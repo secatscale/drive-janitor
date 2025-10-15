@@ -1,0 +1,34 @@
+name: TestMain
+version: 1.0.0
+
+detections:
+  - name: "detection1"
+    mimetype: "image/png"
+
+  - name: "detection2"
+    mimetype: "application/pdf"
+
+  - name: "detection3"
+    mimetype: "video/mp4"
+
+recursions:
+  - name: "recursion1"
+    path: "$trash"
+    max_depth: 4
+
+logs:
+  - name: "logging1"
+    log_format: "text"
+    log_repository: "."
+
+actions:
+  - name: "action1"
+    delete: false 
+    log: "logging1"
+
+rules:
+  - name: "FINALRULE1"
+    action: "action1"
+    detection: ["detection1", "detection2", "detection3"]
+    recursion: "recursion1"
+

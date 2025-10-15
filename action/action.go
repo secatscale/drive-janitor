@@ -173,8 +173,8 @@ func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
 // Special enrichment for Windows Recycle Bin files
 func (fileInfo FileInfo) WindowsTrashSpecialEnrich(trashPath string) {
 	// Check if the file is in the Recycle Bin
-	dir := filepath.Dir(fileInfo["path"])
-	if dir != trashPath {
+	dir := filepath.Clean(filepath.Dir(fileInfo["path"]))
+	if dir != filepath.Clean(trashPath) {
 		return
 	}
 	// Extract original path and deletion date from the file name
@@ -196,7 +196,7 @@ func (fileInfo FileInfo) WindowsTrashSpecialEnrich(trashPath string) {
 		if err != nil {
 			return
 		}
-		pathToLog := dir + filepath.Base(infoFile.OriginalPath)
+		pathToLog := filepath.Join(dir, filepath.Base(infoFile.OriginalPath))
 		fileInfo["path"] = pathToLog
 	}
 }
