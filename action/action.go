@@ -5,10 +5,13 @@ import (
 	"drive-janitor/detection"
 	"drive-janitor/detection/checkage"
 	"drive-janitor/detection/checktype"
+	"drive-janitor/os_utils"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/gobelinor/info2parser"
 )
 
 func (action *Action) TakeAction(filePath string, detectionsMatch []string) {
@@ -134,7 +137,22 @@ func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
 		//		print("On is type: ", detection.Detection.MimeType, "\n")
 		//	}
 	}
+
+	var trashPath string
+	if os_utils.WhichOs() == "windows" {
+		path, err := os_utils.GetWindowsTrashPath()
+		if err != nil {
+			fmt.Printf("Error getting Windows Recycle Bin path: %v\n", err)
+		} else {
+			trashPath = path
+		}
+	}
+
 	for i, fileInfo := range action.LogConfig.FilesInfo {
+
+		if os_utils.WhichOs() == "windows" && trashPath != "" {
+			fileInfo.WindowsTrashSpecialEnrich(trashPath)
+		}
 
 		fileType, err := checktype.GetType(fileInfo["path"])
 		if err != nil {
@@ -149,5 +167,36 @@ func (action *Action) EnrichLogs(detectionInfo []detection.DetectionInfo) {
 		fileInfo["file_age"] = fmt.Sprintf("%d days", fileAge)
 
 		action.LogConfig.FilesInfo[i] = fileInfo
+	}
+}
+
+// Special enrichment for Windows Recycle Bin files
+func (fileInfo FileInfo) WindowsTrashSpecialEnrich(trashPath string) {
+	// Check if the file is in the Recycle Bin
+	dir := filepath.Clean(filepath.Dir(fileInfo["path"]))
+	if dir != filepath.Clean(trashPath) {
+		return
+	}
+	// Extract original path and deletion date from the file name
+	// Windows Recycle Bin files have a specific naming convention
+	// e.g., $R<random>.ext for the actual file and $I<random>.ext for metadata
+	baseName := filepath.Base(fileInfo["path"])
+	if len(baseName) > 2 && (baseName[0] == '$' && baseName[1] == 'I') {
+		return // Skip metadata files
+	}
+	if len(baseName) > 2 && (baseName[0] == '$' && baseName[1] == 'R') {
+		// Parse the metadata file to get original path
+		metaName := "$I" + baseName[2:]
+		metaPath := filepath.Join(trashPath, metaName)
+		data, err := os.ReadFile(metaPath)
+		if err != nil {
+			return
+		}
+		infoFile, err := info2parser.Parse(data)
+		if err != nil {
+			return
+		}
+		pathToLog := filepath.Join(dir, filepath.Base(infoFile.OriginalPath))
+		fileInfo["path"] = pathToLog
 	}
 }
